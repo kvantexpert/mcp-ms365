@@ -411,6 +411,6 @@ Add a fail-closed check for the already-granted `Mail.ReadWrite` permission befo
 
 ## Phase 1.3.9 — First Controlled Write
 
-Status: **Waiting for permission activation**
+Status: **Permission Activation Pending**
 
 The proposed first test remains limited to creating `MCP-Test` and moving one explicitly selected message. It requires separately approved permission activation, a new checkpoint, and the Graph write adapter implementation. No write action is enabled by this roadmap update.
