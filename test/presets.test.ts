@@ -185,6 +185,11 @@ describe('utility tools in presets', () => {
     expect(inPreset('calendar', 'preview-mail-organization')).toBe(false);
   });
 
+  it('confirmation preview utility is limited to the mail preset', () => {
+    expect(inPreset('mail-readonly', 'preview-mail-action-confirmation')).toBe(true);
+    expect(inPreset('calendar', 'preview-mail-action-confirmation')).toBe(false);
+  });
+
   it('parse-teams-url stays scoped to teams/work', () => {
     expect(inPreset('teams', 'parse-teams-url')).toBe(true);
     expect(inPreset('mail', 'parse-teams-url')).toBe(false);

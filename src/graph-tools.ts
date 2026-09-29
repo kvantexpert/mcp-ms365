@@ -47,6 +47,7 @@ export interface DiscoverySearchIndex {
 import { describeToolSchema, describeUtilityToolSchema } from './lib/tool-schema.js';
 import { classifyMailMessage } from './lib/mail-classification.js';
 import { DEFAULT_MAIL_FOLDER_STRUCTURE_RULES, planMailAction } from './lib/mail-action-planner.js';
+import { createConfirmationRequest } from './lib/mail-action-confirmation.js';
 import { queryParameterSchema } from './lib/query-parameter-schema.js';
 import {
   TOP_UNSUPPORTED_DELTA_TOOLS,
@@ -1222,6 +1223,54 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
               mode: 'DRY RUN',
               mailboxChangesPerformed: false,
               message: 'No changes performed.',
+            }),
+          },
+        ],
+      };
+    },
+  },
+  {
+    name: 'preview-mail-action-confirmation',
+    method: 'GET',
+    path: 'tool:preview-mail-action-confirmation',
+    searchKeywords: 'mail action confirmation pending approval rejection status preview',
+    description:
+      'Create a local pending confirmation request for a supplied preview proposal and display its action, target, reason and status. This utility changes only in-memory confirmation state; it makes no Graph request and never executes the proposal or changes mailbox data.',
+    readOnlyHint: true,
+    openWorldHint: false,
+    buildSchema: () => ({
+      messageId: z.string().min(1).describe('Message id from the preview proposal.'),
+      target: z.string().min(1).describe('Proposed target folder from the preview.'),
+      reason: z.array(z.string()).describe('Reasons included in the preview proposal.'),
+      currentFolder: z
+        .string()
+        .optional()
+        .describe('Known current folder display name, if available.'),
+    }),
+    execute: async (params) => {
+      const request = createConfirmationRequest({
+        action: 'move-message',
+        messageId: params.messageId as string,
+        currentFolder: typeof params.currentFolder === 'string' ? params.currentFolder : null,
+        targetFolder: params.target as string,
+        reason: params.reason as string[],
+        status: 'preview',
+      });
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              id: request.id,
+              action: request.actionProposal.action,
+              target: request.actionProposal.targetFolder,
+              reason: request.actionProposal.reason,
+              status: request.status,
+              message: 'Waiting user confirmation',
+              confirmedAt: request.confirmedAt,
+              expiresAt: request.expiresAt,
+              executionPerformed: false,
             }),
           },
         ],
