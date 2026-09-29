@@ -90,6 +90,131 @@ Analyze:
 - urgency
 - business context
 
+# Phase 1.1 — Email Classification Foundation
+
+## Goal
+
+Создать первый безопасный слой Mail Assistant для анализа писем без изменения mailbox.
+
+Принцип:
+
+READ ONLY ONLY
+
+На этом этапе агент только анализирует письма и создаёт классификацию.
+
+## Development Branch
+
+Перед реализацией создать отдельную ветку:
+
+`feature/mail-assistant`
+
+Ветка должна создаваться от стабильного состояния:
+
+`mcp-ms365-codex-mail-readonly-v1`
+
+Цель:
+
+- не нарушить рабочий MCP;
+- сохранить стабильную версию;
+- вести разработку Mail Assistant отдельно.
+
+## Phase 1.1 Functionality
+
+Первая реализуемая функция:
+
+Email Classification
+
+Входные данные — Microsoft Graph mailbox data:
+
+- `subject`
+- `sender`
+- `receivedDateTime`
+- `bodyPreview`
+- message metadata
+
+Источники MCP:
+
+- `list-mail-messages`
+- `get-mail-message`
+
+## Classification Logic
+
+### Topic Classification
+
+Категории:
+
+- Clients
+- Projects
+- Finance
+- Documents
+- Security
+- Automation
+- Personal
+
+### Sender Classification
+
+Определять:
+
+- отправителя;
+- организацию;
+- частоту коммуникации;
+- важность контакта.
+
+### Content Classification
+
+Анализ:
+
+- ключевые слова;
+- тему письма;
+- проект;
+- срочность;
+- наличие действий.
+
+## Output Format
+
+На первом этапе результат только аналитический.
+
+Пример:
+
+```text
+Email:
+Invoice September
+
+Classification:
+Category: Finance
+
+Reason:
+- contains invoice keywords
+- sender matches supplier pattern
+
+Suggested destination:
+Finance/Invoices
+```
+
+Это только рекомендация. Никаких изменений mailbox.
+
+## Restrictions
+
+Phase 1.1 НЕ включает:
+
+- создание папок;
+- перемещение писем;
+- создание правил;
+- отправку писем;
+- изменение mailbox.
+
+Write-функции будут отдельным этапом.
+
+## Next Steps After Phase 1.1
+
+После успешной классификации:
+
+- **Phase 1.2:** Folder Structure Design
+- **Phase 1.3:** Controlled Mail Organization
+- **Phase 1.4:** Automation Rules
+
+Каждый этап требует отдельной проверки, документации и checkpoint.
+
 # Email Organization
 
 ## Folder Structure Management
