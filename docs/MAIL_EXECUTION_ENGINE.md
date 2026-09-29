@@ -14,7 +14,9 @@ prepareExecution
       ↓
 ExecutionRequest (dryRun: true)
       ↓
-executeAction (SAFE MODE: blocked)
+validateWriteExecution
+      ↓
+Mock MailWriteAdapter
       ↓
 Local audit log
 ```
@@ -26,15 +28,13 @@ produce a `blocked` request.
 
 ## SAFE MODE
 
-Every request is marked `dryRun: true`. Calling `executeAction` never invokes
-Graph. `WRITE_EXECUTION_ENABLED` is false unless set to the literal string
-`true`. The `canExecuteWriteAction` eligibility check requires that flag, an
-approved confirmation, and an allowlisted proposal action. Even when that
-eligibility check passes, this preparation-stage executor remains unimplemented:
-`executeAction` returns `blocked` and records the outcome in the process-local
+Every request is marked `dryRun: true`; mock execution never changes mailbox
+state. `WRITE_EXECUTION_ENABLED` is false unless set to the literal string
+`true`. `validateWriteExecution` requires that flag, an approved confirmation,
+and an exact allowlisted operation. A valid request is dispatched to the local
+mock adapter, never to Graph, and its result is recorded in the process-local
 audit log. Rejected or otherwise blocked requests remain blocked. The `executed`
-and `failed` statuses are reserved for a future, separately reviewed
-implementation and are not entered by this foundation.
+status in this phase means only that the mock adapter returned success.
 
 The `preview-mail-execution` MCP utility accepts a confirmation ID, displays
 the proposed action, target, status and reason, and is marked read-only and
@@ -54,16 +54,16 @@ to verify the SAFE MODE flow; it is not durable or a production audit store.
 
 ## Future Write Mode
 
-This foundation does not enable write execution. The `mail-write-controlled`
-preset exposes only the `create-mail-folder` and `move-mail-message` endpoints
-for planning; direct calls are blocked and do not reach Graph. A future execution implementation
-requires a separate permission review and explicit approval, a new checkpoint,
-and tests limited to one selected test email in an existing verified folder.
-Any future implementation must preserve preview, confirmation, audit, result
-verification and rollback safeguards.
+The `mail-write-controlled` preset exposes only the `create-mail-folder` and
+`move-mail-message` endpoints; direct calls are blocked and do not reach Graph.
+The engine's adapter is mock-only. A future Graph adapter requires a separate
+permission review and explicit approval, a new checkpoint, and tests limited to
+the reviewed one-folder/one-message scenario. Any future implementation must
+preserve preview, confirmation, audit, result verification and rollback
+safeguards.
 
 ## Restrictions
 
-This phase does not call Graph write APIs, move messages, create folders or
-rules, or change mailbox state. OAuth, permissions and Graph scopes remain
-unchanged. `Mail.ReadWrite` is not enabled.
+This phase does not call Graph write APIs or change mailbox state. Folder
+creation and message moves are simulated locally only. OAuth, permissions and
+Graph scopes remain unchanged. `Mail.ReadWrite` is not enabled.

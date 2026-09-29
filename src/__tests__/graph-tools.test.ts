@@ -241,6 +241,16 @@ describe('graph-tools', () => {
 
       expect(response.status).toBe('blocked');
       expect(response.reason).toBe('controlled write execution disabled');
+
+      process.env.WRITE_EXECUTION_ENABLED = 'true';
+      const enabledResult = await server.tools.get('create-mail-folder')!.handler({
+        displayName: 'MCP-Test',
+        confirm: true,
+      });
+      const enabledResponse = JSON.parse(enabledResult.content[0].text);
+
+      expect(enabledResponse.status).toBe('blocked');
+      expect(enabledResponse.reason).toContain('Graph write adapter is not implemented');
       expect(graphClient.graphRequest).not.toHaveBeenCalled();
     } finally {
       if (previousFlag === undefined) delete process.env.WRITE_EXECUTION_ENABLED;

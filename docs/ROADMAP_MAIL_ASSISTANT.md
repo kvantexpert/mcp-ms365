@@ -389,4 +389,10 @@ The proposed first controlled scenario is to create the `MCP-Test` folder and mo
 
 Status: **Implementation**
 
-Prepare the opt-in `mail-write-controlled` preset with only the `create-mail-folder` and `move-mail-message` tools. `WRITE_EXECUTION_ENABLED` defaults to false. In this preparation stage the execution engine remains SAFE MODE and direct Graph write tool calls remain blocked; no permission transition or Graph write executor is enabled.
+Prepare the opt-in `mail-write-controlled` preset with only the `create-mail-folder` and `move-mail-message` tools. `WRITE_EXECUTION_ENABLED` defaults to false. The execution engine remains mock-only and direct Graph write tool calls remain blocked; no permission transition or Graph adapter is enabled.
+
+## Phase 1.3.6 — First Controlled Write Execution
+
+Status: **Adapter Preparation**
+
+Implement the isolated adapter interface and exercise `create-folder` and `move-message` through a mock adapter only. Validate the feature flag, exact approved confirmation, and operation allowlist. Do not connect a Graph write client or change mailbox state in this phase.

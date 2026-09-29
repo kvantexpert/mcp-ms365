@@ -47,15 +47,15 @@ describe('mail execution engine SAFE MODE', () => {
     expect(getExecutionStatus(request.id)).toEqual(request);
   });
 
-  it('blocks execution even when confirmation is approved', () => {
+  it('blocks execution when WRITE_EXECUTION_ENABLED is false', async () => {
     const confirmation = approvedConfirmation();
     const request = prepareExecution(confirmation.id);
     vi.stubEnv('WRITE_EXECUTION_ENABLED', 'false');
 
-    const result = executeAction(request.id);
+    const result = await executeAction(request.id);
 
     expect(result.status).toBe('blocked');
-    expect(result.reason).toBe('controlled write execution disabled');
+    expect(result.reason).toBe('write execution validation failed');
     expect(result.dryRun).toBe(true);
   });
 
@@ -69,10 +69,11 @@ describe('mail execution engine SAFE MODE', () => {
     expect(source).not.toMatch(/move-mail-message|create-mail-folder|create-mail-rule/);
   });
 
-  it('writes a local audit entry for the blocked execution', () => {
+  it('writes a local audit entry for the blocked execution', async () => {
     const confirmation = approvedConfirmation();
     const request = prepareExecution(confirmation.id);
-    const result = executeAction(request.id, new Date('2026-09-30T12:00:00.000Z'));
+    vi.stubEnv('WRITE_EXECUTION_ENABLED', 'false');
+    const result = await executeAction(request.id, new Date('2026-09-30T12:00:00.000Z'));
     const audit = getMailAuditLog().find((entry) => entry.actionId === request.id);
 
     expect(audit).toEqual({
@@ -81,19 +82,19 @@ describe('mail execution engine SAFE MODE', () => {
       action: 'move-message',
       timestamp: '2026-09-30T12:00:00.000Z',
       result: 'blocked',
-      reason: 'controlled write execution disabled',
+      reason: 'write execution validation failed',
     });
     expect(result.status).toBe('blocked');
   });
 
-  it('blocks execution for rejected confirmations', () => {
+  it('blocks execution for rejected confirmations', async () => {
     const confirmation = createConfirmationRequest(makeProposal());
     const rejected = rejectAction(confirmation.id);
     const request = prepareExecution(rejected.id);
 
     expect(request.status).toBe('blocked');
     expect(request.reason).toBe('confirmation status is rejected');
-    expect(executeAction(request.id).status).toBe('blocked');
+    expect((await executeAction(request.id)).status).toBe('blocked');
   });
 
   it('blocks a missing confirmation', () => {
@@ -134,15 +135,16 @@ describe('mail execution engine SAFE MODE', () => {
     expect(canExecuteWriteAction(approvedUnsupported.id)).toBe(false);
   });
 
-  it('keeps executeAction blocked even when the eligibility flag is enabled', () => {
+  it('uses the mock adapter when the flag and confirmation allow the operation', async () => {
     const confirmation = approvedConfirmation();
     const request = prepareExecution(confirmation.id);
     vi.stubEnv('WRITE_EXECUTION_ENABLED', 'true');
 
-    const result = executeAction(request.id);
+    const result = await executeAction(request.id);
 
-    expect(result.status).toBe('blocked');
-    expect(result.reason).toContain('executor');
+    expect(result.status).toBe('executed');
+    expect(result.mode).toBe('mock');
+    expect(result.adapterResult?.mode).toBe('mock');
     expect(result.dryRun).toBe(true);
   });
 });

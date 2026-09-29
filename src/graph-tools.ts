@@ -1220,8 +1220,15 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
               classification,
               suggestedAction: {
                 action: proposal.action,
-                currentFolder: proposal.currentFolder,
-                targetFolder: proposal.targetFolder,
+                ...(proposal.action === 'move-message'
+                  ? {
+                      currentFolder: proposal.currentFolder,
+                      targetFolder: proposal.targetFolder,
+                    }
+                  : {
+                      parentFolderId: proposal.parentFolderId,
+                      displayName: proposal.displayName,
+                    }),
                 reasons: proposal.reason,
                 status: proposal.status,
               },
@@ -1269,7 +1276,14 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
             text: JSON.stringify({
               id: request.id,
               action: request.actionProposal.action,
-              target: request.actionProposal.targetFolder,
+              target:
+                request.actionProposal.action === 'move-message'
+                  ? request.actionProposal.targetFolder
+                  : request.actionProposal.displayName,
+              messageId:
+                request.actionProposal.action === 'move-message'
+                  ? request.actionProposal.messageId
+                  : null,
               reason: request.actionProposal.reason,
               status: request.status,
               message: 'Waiting user confirmation',
@@ -1288,7 +1302,7 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
     path: 'tool:preview-mail-execution',
     searchKeywords: 'mail execution safe mode preview approved confirmation blocked status',
     description:
-      'Show whether an approved mail action is eligible for execution. In the current SAFE MODE every action is blocked with write execution disabled and recorded in the local audit log. Makes no Graph request and never changes mailbox data.',
+      'Validate an approved mail action and run it only through the local mock write adapter when WRITE_EXECUTION_ENABLED=true. Never calls Microsoft Graph or changes mailbox data.',
     readOnlyHint: true,
     openWorldHint: false,
     buildSchema: () => ({
@@ -1296,7 +1310,7 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
     }),
     execute: async (params) => {
       const execution = prepareExecution(params.confirmationId as string);
-      const result = executeAction(execution.id);
+      const result = await executeAction(execution.id);
 
       return {
         content: [

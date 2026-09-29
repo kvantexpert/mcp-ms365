@@ -34,6 +34,6 @@ The controlled preset does not include:
 
 - `WRITE_EXECUTION_ENABLED` is false unless explicitly set to the literal string `true`.
 - The execution eligibility check requires the flag, an approved confirmation, and an allowlisted action.
-- In this preparation phase, `executeAction` remains SAFE MODE even when the eligibility flag is true: the Graph write executor is not implemented, so it returns `blocked` and never invokes Graph.
+- In this preparation phase, `executeAction` uses only the local mock adapter when the eligibility flag is true and the confirmation is approved. It never invokes Graph.
 - Direct calls to the two exposed Graph write tools also return a blocked planning response; there is no path to a Graph write API in this phase.
 - A future implementation requires explicit confirmation, durable audit, result verification, rollback planning, and a separate permission transition/checkpoint.

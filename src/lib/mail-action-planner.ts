@@ -12,7 +12,7 @@ export interface MailFolderStructureRule {
   targetFolder: string;
 }
 
-export interface MailActionProposal {
+export interface MoveMailActionProposal {
   action: 'move-message';
   messageId: string;
   currentFolder: string | null;
@@ -20,6 +20,16 @@ export interface MailActionProposal {
   reason: string[];
   status: 'preview';
 }
+
+export interface CreateMailFolderActionProposal {
+  action: 'create-folder';
+  parentFolderId: string | null;
+  displayName: string;
+  reason: string[];
+  status: 'preview';
+}
+
+export type MailActionProposal = MoveMailActionProposal | CreateMailFolderActionProposal;
 
 export const DEFAULT_MAIL_FOLDER_STRUCTURE_RULES: readonly MailFolderStructureRule[] = [
   { category: 'Finance', targetFolder: '{suggestedFolder}' },

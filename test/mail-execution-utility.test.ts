@@ -35,7 +35,7 @@ describe('preview-mail-execution utility', () => {
     expect(response.action).toBe('move-message');
     expect(response.target).toBe('MCP-Test');
     expect(response.status).toBe('blocked');
-    expect(response.reason).toBe('controlled write execution disabled');
+    expect(response.reason).toBe('write execution validation failed');
     expect(response.dryRun).toBe(true);
   });
 });
