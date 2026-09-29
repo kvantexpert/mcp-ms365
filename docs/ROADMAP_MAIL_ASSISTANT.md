@@ -393,6 +393,12 @@ Prepare the opt-in `mail-write-controlled` preset with only the `create-mail-fol
 
 ## Phase 1.3.6 — First Controlled Write Execution
 
-Status: **Adapter Preparation**
+Status: **Completed (Mock Only)**
 
-Implement the isolated adapter interface and exercise `create-folder` and `move-message` through a mock adapter only. Validate the feature flag, exact approved confirmation, and operation allowlist. Do not connect a Graph write client or change mailbox state in this phase.
+The isolated adapter interface exercises `create-folder` and `move-message` through a mock adapter only. It validates the feature flag, approved confirmation, and operation allowlist. No Graph write client is connected and no mailbox state is changed.
+
+## Phase 1.3.7 — Real Graph Write Adapter
+
+Status: **Preparation**
+
+Plan the Graph-backed adapter only after a separate permission transition and explicit approval. Until that work is separately authorized, the system remains **MOCK ONLY**.
