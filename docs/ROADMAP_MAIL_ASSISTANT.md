@@ -373,8 +373,14 @@ Status: **Completed**
 
 Confirmation requests can be created and set to `approved`, `rejected`, or `expired`. Approval changes only local in-memory state; execution remains unavailable. No Graph write operation is performed.
 
-## Phase 1.3.3 — Controlled Execution
+## Phase 1.3.3 — Controlled Execution Engine Foundation
 
-Status: **Planning**
+Status: **Completed**
 
-Planned first write scope: move one explicitly selected test email to an existing verified folder, only after separate permission review, testing, and checkpoint. Bulk operations, automatic rules, and folder creation are outside the initial scope. The project remains **READ ONLY** until those prerequisites are separately approved and implemented.
+The execution engine foundation is implemented in SAFE MODE. It prepares and audits requests but blocks execution; it does not call Microsoft Graph write APIs. The project remains **READ ONLY**.
+
+## Phase 1.3.4 — First Controlled Write
+
+Status: **Permission Review**
+
+The proposed first controlled scenario is to create the `MCP-Test` folder and move one explicitly selected message from `Inbox` to that folder. This remains planning only until permissions are reviewed, a separate checkpoint and tests are completed, and the user explicitly approves the write operation.
