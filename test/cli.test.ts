@@ -72,6 +72,12 @@ describe('CLI Module', () => {
       expect(result).toEqual({ file: 'test.xlsx' });
     });
 
+    it('should parse --disable-auth-tools', () => {
+      commanderMocks.mockCommand.opts.mockReturnValue({ disableAuthTools: true });
+
+      expect(parseArgs().disableAuthTools).toBe(true);
+    });
+
     it('should parse --allowed-scopes from CLI options', () => {
       commanderMocks.mockCommand.opts.mockReturnValue({ allowedScopes: 'Mail.Read Files.Read' });
 

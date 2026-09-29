@@ -321,7 +321,8 @@ class MicrosoftGraphServer {
       }
     );
 
-    const shouldRegisterAuthTools = !this.options.http || this.options.enableAuthTools;
+    const shouldRegisterAuthTools =
+      !this.options.disableAuthTools && (!this.options.http || this.options.enableAuthTools);
     if (shouldRegisterAuthTools) {
       registerAuthTools(server, this.authManager);
     }

@@ -48,6 +48,10 @@ const graphToolMocks = vi.hoisted(() => ({
   registerGraphTools: vi.fn(),
 }));
 
+const authToolMocks = vi.hoisted(() => ({
+  registerAuthTools: vi.fn(),
+}));
+
 vi.mock('express', () => ({
   default: expressMocks.express,
 }));
@@ -57,6 +61,7 @@ vi.mock('@modelcontextprotocol/sdk/server/auth/router.js', () => ({
 }));
 
 vi.mock('../src/graph-tools.js', () => graphToolMocks);
+vi.mock('../src/auth-tools.js', () => authToolMocks);
 
 vi.mock('../src/oauth-provider.js', () => ({
   MicrosoftOAuthProvider: vi.fn(),
@@ -112,6 +117,7 @@ describe('allowed scope HTTP behavior', () => {
     expressMocks.routes.clear();
     graphToolMocks.registerDiscoveryTools.mockClear();
     graphToolMocks.registerGraphTools.mockClear();
+    authToolMocks.registerAuthTools.mockClear();
     process.env.MS365_MCP_CLIENT_ID = 'test-client-id';
     process.env.MS365_MCP_TENANT_ID = 'test-tenant';
     delete process.env.MS365_MCP_CLIENT_SECRET;
@@ -227,5 +233,28 @@ describe('allowed scope HTTP behavior', () => {
       'Mail.Read',
       true
     );
+  });
+
+  it.each([
+    ['stdio registers auth tools by default', {}, true],
+    ['stdio can disable auth tools', { disableAuthTools: true }, false],
+    ['HTTP omits auth tools by default', { http: true }, false],
+    [
+      'disable-auth-tools takes precedence over enable-auth-tools in HTTP mode',
+      { http: true, enableAuthTools: true, disableAuthTools: true },
+      false,
+    ],
+  ])('%s', (_name, options, shouldRegisterAuthTools) => {
+    const server = new MicrosoftGraphServer(mockAuthManager(), options);
+    Object.assign(server, { graphClient: {}, version: 'test' });
+
+    (server as unknown as { createMcpServer: () => unknown }).createMcpServer();
+
+    if (shouldRegisterAuthTools) {
+      expect(authToolMocks.registerAuthTools).toHaveBeenCalledOnce();
+    } else {
+      expect(authToolMocks.registerAuthTools).not.toHaveBeenCalled();
+    }
+    expect(graphToolMocks.registerGraphTools).toHaveBeenCalledOnce();
   });
 });

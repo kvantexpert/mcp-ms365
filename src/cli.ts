@@ -49,6 +49,7 @@ program
     '--enable-auth-tools',
     'Enable login/logout tools when using HTTP mode (disabled by default in HTTP mode)'
   )
+  .option('--disable-auth-tools', 'Disable login/logout and account-management tools')
   .option(
     '--enable-attachment-urls',
     'HTTP mode only. Let get-download-url mint a short-TTL, single-use URL served by this server for Graph byte resources that expose no pre-authenticated URL of their own (mail and event attachments, meeting recordings, other $value endpoints). Requires MS365_MCP_ATTACHMENT_URL_BASE and MS365_MCP_ATTACHMENT_URL_KEY (or _KEY_FILE)'
@@ -143,6 +144,7 @@ export interface CommandOptions {
   messageSignoffPrefix?: string;
   http?: string | boolean;
   enableAuthTools?: boolean;
+  disableAuthTools?: boolean;
   enableAttachmentUrls?: boolean;
   /**
    * Raw, unvalidated port for the split attachment listener. A string when it
