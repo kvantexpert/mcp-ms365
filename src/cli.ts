@@ -2,7 +2,12 @@ import { Command, Option } from 'commander';
 import { readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getCombinedPresetPattern, listPresets, presetRequiresOrgMode } from './tool-categories.js';
+import {
+  getCombinedPresetPattern,
+  getPresetOptions,
+  listPresets,
+  presetRequiresOrgMode,
+} from './tool-categories.js';
 import { assertSignoffMarkersVisible } from './lib/message-signoff.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -76,7 +81,7 @@ program
   )
   .option(
     '--preset <names>',
-    'Use preset tool categories (comma-separated). Available: mail, calendar, files, personal, work, excel, contacts, tasks, onenote, search, users, outlook, onedrive, teams, teams-write, all'
+    'Use preset tool categories (comma-separated). Available: mail, mail-readonly, calendar, files, personal, work, excel, contacts, tasks, onenote, search, users, outlook, onedrive, teams, teams-write, all'
   )
   .option('--list-presets', 'List all available presets and exit')
   .option('--list-permissions', 'List all required Graph API permissions and exit')
@@ -214,6 +219,9 @@ export function parseArgs(): CommandOptions {
     const presetNames = options.preset.split(',').map((p: string) => p.trim());
     try {
       options.enabledTools = getCombinedPresetPattern(presetNames);
+      const presetOptions = getPresetOptions(presetNames);
+      if (presetOptions.readOnly) options.readOnly = true;
+      if (presetOptions.disableAuthTools) options.disableAuthTools = true;
 
       const requiresOrgMode = presetNames.some((preset: string) => presetRequiresOrgMode(preset));
       if (requiresOrgMode && !options.orgMode) {

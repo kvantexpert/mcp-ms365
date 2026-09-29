@@ -4,6 +4,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import {
   getCombinedPresetPattern,
+  getPresetOptions,
+  listPresets,
   presetRequiresOrgMode,
   TOOL_CATEGORIES,
 } from '../src/tool-categories.js';
@@ -48,6 +50,17 @@ describe('presets from endpoints.json', () => {
     expect(tools).toContain('send-mail');
     expect(tools).not.toContain('list-shared-mailbox-messages');
     expect(tools).not.toContain('send-shared-mailbox-mail');
+  });
+
+  it('mail-readonly reuses mail tools and expands to read-only auth settings', () => {
+    expect(getCombinedPresetPattern(['mail-readonly'])).toBe(getCombinedPresetPattern(['mail']));
+    expect(getPresetOptions(['mail-readonly'])).toEqual({
+      readOnly: true,
+      disableAuthTools: true,
+    });
+    expect(listPresets()).toContainEqual(
+      expect.objectContaining({ name: 'mail-readonly', readOnly: true, disableAuthTools: true })
+    );
   });
 
   it('files covers OneDrive without mail-folder or sharepoint leakage', () => {

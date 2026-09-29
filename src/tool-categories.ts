@@ -7,6 +7,8 @@ export interface ToolCategory {
   pattern: RegExp;
   description: string;
   requiresOrgMode?: boolean;
+  readOnly?: boolean;
+  disableAuthTools?: boolean;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,10 +23,23 @@ const endpointEntries = JSON.parse(
 // loose name regexes could (e.g. "mail" also matching shared-mailbox tools).
 const PRESET_META: Record<
   string,
-  { description: string; requiresOrgMode?: boolean; omitUniversalUtilities?: boolean }
+  {
+    description: string;
+    requiresOrgMode?: boolean;
+    omitUniversalUtilities?: boolean;
+    toolPreset?: string;
+    readOnly?: boolean;
+    disableAuthTools?: boolean;
+  }
 > = {
   mail: {
     description: 'Email operations (read, send, manage folders, attachments)',
+  },
+  'mail-readonly': {
+    description: 'Read-only email operations with authentication and account tools disabled',
+    toolPreset: 'mail',
+    readOnly: true,
+    disableAuthTools: true,
   },
   calendar: {
     description: 'Calendar and event management',
@@ -111,8 +126,11 @@ for (const [tool, presets] of Object.entries(SCOPED_UTILITY_TOOLS)) {
 }
 
 function presetPattern(preset: string): RegExp {
+  const toolPreset = PRESET_META[preset]?.toolPreset ?? preset;
   const endpointNames = [
-    ...new Set(endpointEntries.filter((e) => e.presets?.includes(preset)).map((e) => e.toolName)),
+    ...new Set(
+      endpointEntries.filter((e) => e.presets?.includes(toolPreset)).map((e) => e.toolName)
+    ),
   ];
   // Guard on endpoint membership, not the final `names` list: the universal utility spread below
   // would otherwise mask a preset that no endpoint declares (a typo'd or unwired preset name).
@@ -121,9 +139,9 @@ function presetPattern(preset: string): RegExp {
   }
   const names = [
     ...endpointNames,
-    ...(PRESET_META[preset]?.omitUniversalUtilities ? [] : UNIVERSAL_UTILITY_TOOLS),
+    ...(PRESET_META[toolPreset]?.omitUniversalUtilities ? [] : UNIVERSAL_UTILITY_TOOLS),
     ...Object.entries(SCOPED_UTILITY_TOOLS)
-      .filter(([, presets]) => presets.includes(preset))
+      .filter(([, presets]) => presets.includes(toolPreset))
       .map(([name]) => name),
   ];
   return new RegExp(`^(?:${names.join('|')})$`);
@@ -156,15 +174,37 @@ export function getCombinedPresetPattern(presets: string[]): string {
   return patterns.join('|');
 }
 
+export function getPresetOptions(presets: string[]): {
+  readOnly?: boolean;
+  disableAuthTools?: boolean;
+} {
+  const options: { readOnly?: boolean; disableAuthTools?: boolean } = {};
+  for (const preset of presets) {
+    const category = TOOL_CATEGORIES[preset];
+    if (!category) {
+      throw new Error(
+        `Unknown preset: ${preset}. Available presets: ${Object.keys(TOOL_CATEGORIES).join(', ')}`
+      );
+    }
+    if (category.readOnly) options.readOnly = true;
+    if (category.disableAuthTools) options.disableAuthTools = true;
+  }
+  return options;
+}
+
 export function listPresets(): Array<{
   name: string;
   description: string;
   requiresOrgMode?: boolean;
+  readOnly?: boolean;
+  disableAuthTools?: boolean;
 }> {
   return Object.values(TOOL_CATEGORIES).map((category) => ({
     name: category.name,
     description: category.description,
     requiresOrgMode: category.requiresOrgMode,
+    readOnly: category.readOnly,
+    disableAuthTools: category.disableAuthTools,
   }));
 }
 

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MicrosoftGraphServer from '../src/server.js';
 import type AuthManager from '../src/auth.js';
 import { clearSecretsCache } from '../src/secrets.js';
+import { getCombinedPresetPattern, getPresetOptions } from '../src/tool-categories.js';
 
 const expressMocks = vi.hoisted(() => {
   type Handler = (req: Record<string, unknown>, res: Record<string, unknown>) => unknown;
@@ -256,5 +257,30 @@ describe('allowed scope HTTP behavior', () => {
       expect(authToolMocks.registerAuthTools).not.toHaveBeenCalled();
     }
     expect(graphToolMocks.registerGraphTools).toHaveBeenCalledOnce();
+  });
+
+  it('mail-readonly disables MCP auth tools and keeps Graph registration filtered', () => {
+    const options = {
+      ...getPresetOptions(['mail-readonly']),
+      enabledTools: getCombinedPresetPattern(['mail-readonly']),
+    };
+    const server = new MicrosoftGraphServer(mockAuthManager(), options);
+    Object.assign(server, { graphClient: {}, version: 'test' });
+
+    (server as unknown as { createMcpServer: () => unknown }).createMcpServer();
+
+    expect(authToolMocks.registerAuthTools).not.toHaveBeenCalled();
+    expect(graphToolMocks.registerGraphTools).toHaveBeenCalledWith(
+      expect.anything(),
+      {},
+      true,
+      getCombinedPresetPattern(['mail']),
+      undefined,
+      expect.anything(),
+      false,
+      [],
+      undefined,
+      false
+    );
   });
 });

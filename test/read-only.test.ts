@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { parseArgs } from '../src/cli.js';
 import { registerGraphTools } from '../src/graph-tools.js';
 import type { GraphClient } from '../src/graph-client.js';
+import { getCombinedPresetPattern, getPresetOptions } from '../src/tool-categories.js';
 
 vi.mock('../src/cli.js', () => {
   const parseArgsMock = vi.fn();
@@ -60,7 +61,11 @@ vi.mock('../src/logger.js', () => {
 });
 
 describe('Read-Only Mode', () => {
-  let mockServer: { tool: ReturnType<typeof vi.fn>; registerTool: ReturnType<typeof vi.fn> };
+  let mockServer: {
+    tool: ReturnType<typeof vi.fn>;
+    registerTool: ReturnType<typeof vi.fn>;
+    server: { _requestHandlers: Map<string, unknown>; setRequestHandler: ReturnType<typeof vi.fn> };
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -70,6 +75,10 @@ describe('Read-Only Mode', () => {
     mockServer = {
       tool: vi.fn(),
       registerTool: vi.fn(),
+      server: {
+        _requestHandlers: new Map([['tools/call', vi.fn()]]),
+        setRequestHandler: vi.fn(),
+      },
     };
   });
 
@@ -94,6 +103,28 @@ describe('Read-Only Mode', () => {
     expect(toolCalls).toContain('list-mail-messages');
     expect(toolCalls).not.toContain('send-mail');
     expect(toolCalls).not.toContain('delete-mail-message');
+  });
+
+  it('mail-readonly registers mail readers but no Graph write tools', () => {
+    const options = {
+      ...getPresetOptions(['mail-readonly']),
+      enabledTools: getCombinedPresetPattern(['mail-readonly']),
+    };
+    vi.mocked(parseArgs).mockReturnValue(options as ReturnType<typeof parseArgs>);
+
+    const parsedOptions = parseArgs();
+    registerGraphTools(
+      mockServer,
+      {} as GraphClient,
+      parsedOptions.readOnly,
+      parsedOptions.enabledTools
+    );
+
+    const toolCalls = mockServer.registerTool.mock.calls.map((call: unknown[]) => call[0]);
+    expect(toolCalls).toContain('list-mail-messages');
+    expect(toolCalls).not.toContain('send-mail');
+    expect(toolCalls).not.toContain('delete-mail-message');
+    expect(toolCalls).not.toContain('get-schedule');
   });
 
   it('should register all endpoints when not in read-only mode', () => {

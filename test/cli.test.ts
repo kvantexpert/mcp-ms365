@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { parseArgs } from '../src/cli.js';
+import { getCombinedPresetPattern } from '../src/tool-categories.js';
 
 const commanderMocks = vi.hoisted(() => {
   const mockCommand = {
@@ -76,6 +77,27 @@ describe('CLI Module', () => {
       commanderMocks.mockCommand.opts.mockReturnValue({ disableAuthTools: true });
 
       expect(parseArgs().disableAuthTools).toBe(true);
+    });
+
+    it('should expand --preset mail-readonly into mail tools and safe mode options', () => {
+      const previousEnabledTools = process.env.ENABLED_TOOLS;
+      const previousReadOnly = process.env.READ_ONLY;
+      delete process.env.ENABLED_TOOLS;
+      delete process.env.READ_ONLY;
+      commanderMocks.mockCommand.opts.mockReturnValue({ preset: 'mail-readonly' });
+
+      try {
+        const result = parseArgs();
+
+        expect(result.enabledTools).toBe(getCombinedPresetPattern(['mail']));
+        expect(result.readOnly).toBe(true);
+        expect(result.disableAuthTools).toBe(true);
+      } finally {
+        if (previousEnabledTools === undefined) delete process.env.ENABLED_TOOLS;
+        else process.env.ENABLED_TOOLS = previousEnabledTools;
+        if (previousReadOnly === undefined) delete process.env.READ_ONLY;
+        else process.env.READ_ONLY = previousReadOnly;
+      }
     });
 
     it('should parse --allowed-scopes from CLI options', () => {
