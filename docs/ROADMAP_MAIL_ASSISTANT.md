@@ -414,3 +414,9 @@ Add a fail-closed check for the already-granted `Mail.ReadWrite` permission befo
 Status: **Permission Activation Pending**
 
 The proposed first test remains limited to creating `MCP-Test` and moving one explicitly selected message. It requires separately approved permission activation, a new checkpoint, and the Graph write adapter implementation. No write action is enabled by this roadmap update.
+
+## Phase 1 Review
+
+Status: **Completed**
+
+The Phase 1 architecture and implementation review is documented in `docs/MAIL_ASSISTANT_PHASE1_COMPLETE_REVIEW.md`. This review does not change the Phase 1.3.9 status: permission activation is still pending, and the project remains mock-only with no mailbox changes.
