@@ -402,3 +402,15 @@ The isolated adapter interface exercises `create-folder` and `move-message` thro
 Status: **Implementation**
 
 Add the adapter factory and a Graph adapter placeholder that returns `not-implemented`. The factory defaults to mock mode. No Graph client, write API, permission transition, or mailbox change is enabled in this phase.
+
+## Phase 1.3.8 — Permission Activation Preparation
+
+Status: **Completed**
+
+Add a fail-closed check for the already-granted `Mail.ReadWrite` permission before Graph adapter selection. This phase only reads existing token claims; it does not request scopes, start login or consent, or connect a Graph write API.
+
+## Phase 1.3.9 — First Controlled Write
+
+Status: **Waiting for permission activation**
+
+The proposed first test remains limited to creating `MCP-Test` and moving one explicitly selected message. It requires separately approved permission activation, a new checkpoint, and the Graph write adapter implementation. No write action is enabled by this roadmap update.

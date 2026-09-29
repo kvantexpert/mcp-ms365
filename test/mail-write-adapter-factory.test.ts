@@ -68,10 +68,11 @@ describe('mail write adapter factory (mock only)', () => {
   it('blocks the engine in graph mode while the adapter is not implemented', async () => {
     vi.stubEnv('WRITE_ADAPTER_MODE', 'graph');
     vi.stubEnv('WRITE_EXECUTION_ENABLED', 'true');
+    vi.stubEnv('WRITE_PERMISSION_REQUIRED', 'true');
     const confirmation = confirmAction(createConfirmationRequest(folderProposal()).id);
     const request = prepareExecution(confirmation.id);
 
-    const result = await executeAction(request.id);
+    const result = await executeAction(request.id, new Date(), undefined, ['Mail.ReadWrite']);
 
     expect(result.status).toBe('blocked');
     expect(result.mode).toBe('graph');

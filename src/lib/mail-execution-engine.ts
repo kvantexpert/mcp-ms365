@@ -4,6 +4,7 @@ import { recordMailAuditEntry } from './mail-audit-log.js';
 import type { MailActionProposal } from './mail-action-planner.js';
 import { createMailWriteAdapter, validateWriteAdapterMode } from './mail-write-adapter-factory.js';
 import type { MailWriteAdapter, MailWriteAdapterResult } from './mail-write-adapter.js';
+import { validateRequiredPermissions } from './write-permission-validation.js';
 
 export type ExecutionStatus = 'ready' | 'blocked' | 'executed' | 'failed';
 
@@ -40,15 +41,24 @@ export interface WriteExecutionValidation {
 export function validateWriteExecution(
   confirmationId: string,
   operation: string,
-  now: Date = new Date()
+  now: Date = new Date(),
+  grantedPermissions: readonly string[] = []
 ): WriteExecutionValidation {
-  const blocked = (): WriteExecutionValidation => ({
+  const blocked = (reason = 'write execution validation failed'): WriteExecutionValidation => ({
     valid: false,
     status: 'blocked',
-    reason: 'write execution validation failed',
+    reason,
   });
-  if (!validateWriteAdapterMode().valid) return blocked();
+  const adapterMode = validateWriteAdapterMode();
+  if (!adapterMode.valid) return blocked();
   if (!isWriteExecutionEnabled()) return blocked();
+  if (adapterMode.mode === 'graph') {
+    if (process.env.WRITE_PERMISSION_REQUIRED !== 'true') {
+      return blocked('WRITE_PERMISSION_REQUIRED must be true');
+    }
+    const permissionValidation = validateRequiredPermissions(grantedPermissions);
+    if (permissionValidation.status !== 'allowed') return blocked(permissionValidation.reason);
+  }
   const confirmation = getConfirmationStatus(confirmationId, now);
   if (!confirmation || confirmation.status !== 'approved') return blocked();
   if (!ALLOWED_OPERATIONS.has(operation)) return blocked();
@@ -116,7 +126,8 @@ export function prepareExecution(confirmationId: string, now: Date = new Date())
 export async function executeAction(
   id: string,
   now: Date = new Date(),
-  adapter?: MailWriteAdapter
+  adapter?: MailWriteAdapter,
+  grantedPermissions: readonly string[] = []
 ): Promise<ExecutionRequest> {
   const request = executionRequests.get(id);
   if (!request) throw new Error(`Execution request not found: ${id}`);
@@ -125,11 +136,16 @@ export async function executeAction(
     request.status === 'executed' ? 'executed' : request.status === 'failed' ? 'failed' : 'blocked';
   if (request.status === 'ready') {
     const confirmation = getConfirmationStatus(request.confirmationId, now);
-    const validation = validateWriteExecution(request.confirmationId, request.action, now);
+    const validation = validateWriteExecution(
+      request.confirmationId,
+      request.action,
+      now,
+      grantedPermissions
+    );
     if (!validation.valid || !confirmation || confirmation.status !== 'approved') {
       request.status = 'blocked';
       request.mode = 'planning';
-      request.reason = 'write execution validation failed';
+      request.reason = validation.reason;
     } else {
       try {
         const selectedAdapter = adapter ?? createMailWriteAdapter();

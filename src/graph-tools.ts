@@ -48,6 +48,8 @@ import { describeToolSchema, describeUtilityToolSchema } from './lib/tool-schema
 import { classifyMailMessage } from './lib/mail-classification.js';
 import { DEFAULT_MAIL_FOLDER_STRUCTURE_RULES, planMailAction } from './lib/mail-action-planner.js';
 import { createConfirmationRequest } from './lib/mail-action-confirmation.js';
+import { getGrantedPermissionsFromAccessToken } from './lib/write-permission-validation.js';
+import { getMailWriteAdapterMode } from './lib/mail-write-adapter-factory.js';
 import {
   executeAction,
   isWriteExecutionEnabled,
@@ -1308,9 +1310,25 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
     buildSchema: () => ({
       confirmationId: z.string().min(1).describe('Confirmation request UUID.'),
     }),
-    execute: async (params) => {
+    execute: async (params, ctx) => {
       const execution = prepareExecution(params.confirmationId as string);
-      const result = await executeAction(execution.id);
+      let grantedPermissions: string[] = [];
+      if (
+        getMailWriteAdapterMode() === 'graph' &&
+        process.env.WRITE_EXECUTION_ENABLED === 'true' &&
+        process.env.WRITE_PERMISSION_REQUIRED === 'true'
+      ) {
+        let accessToken = getRequestTokens()?.accessToken;
+        if (!accessToken && ctx.authManager) {
+          try {
+            accessToken = (await ctx.authManager.getTokenForAccount()) || undefined;
+          } catch {
+            // Permission validation below fails closed when there is no usable current token.
+          }
+        }
+        grantedPermissions = getGrantedPermissionsFromAccessToken(accessToken);
+      }
+      const result = await executeAction(execution.id, new Date(), undefined, grantedPermissions);
 
       return {
         content: [
