@@ -9,7 +9,7 @@ import {
   presetRequiresOrgMode,
   TOOL_CATEGORIES,
 } from '../src/tool-categories.js';
-import { UTILITY_TOOLS } from '../src/graph-tools.js';
+import { buildToolsRegistry, UTILITY_TOOLS } from '../src/graph-tools.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +61,27 @@ describe('presets from endpoints.json', () => {
     expect(listPresets()).toContainEqual(
       expect.objectContaining({ name: 'mail-readonly', readOnly: true, disableAuthTools: true })
     );
+  });
+
+  it('mail-readonly does not register Graph write tools', () => {
+    const enabled = getCombinedPresetPattern(['mail-readonly']);
+    const registry = buildToolsRegistry(true, false, new RegExp(enabled, 'i'));
+    expect(registry.has('create-mail-folder')).toBe(false);
+    expect(registry.has('move-mail-message')).toBe(false);
+  });
+
+  it('mail-write-controlled contains only the two allowlisted write tools', () => {
+    const tools = matchedTools('mail-write-controlled');
+    expect(tools.sort()).toEqual(['create-mail-folder', 'move-mail-message']);
+    expect(matchedTools('controlled-write').sort()).toEqual([
+      'create-mail-folder',
+      'move-mail-message',
+    ]);
+    expect(tools).not.toContain('send-mail');
+    expect(tools).not.toContain('delete-mail-message');
+    expect(tools).not.toContain('create-mail-rule');
+    expect(tools).not.toContain('update-mail-message');
+    expect(getPresetOptions(['mail-write-controlled'])).toEqual({ disableAuthTools: true });
   });
 
   it('files covers OneDrive without mail-folder or sharepoint leakage', () => {
@@ -148,13 +169,15 @@ describe('utility tools in presets', () => {
   });
 
   // download-bytes and download-bytes-to-file are universal Graph binary readers (base64 vs stream
-  // to disk), so no preset - current or future - should be able to find a resource without being
-  // able to read its bytes. teams-write is the one deliberate exception: a send-only preset must
-  // not carry byte readers (its own contract test pins that exclusion).
+  // to disk), so presets generally include them. teams-write (send-only) and controlled-write
+  // (strict two-tool allowlist) deliberately omit universal utilities.
   it.each(['download-bytes', 'download-bytes-to-file'])(
-    '%s is available in every preset except teams-write (universal binary reader)',
+    '%s is available in presets that include universal binary readers',
     (tool) => {
-      for (const preset of namedPresets.filter((name) => name !== 'teams-write')) {
+      for (const preset of namedPresets.filter(
+        (name) =>
+          name !== 'teams-write' && name !== 'controlled-write' && name !== 'mail-write-controlled'
+      )) {
         expect(inPreset(preset, tool), `${tool} missing from ${preset}`).toBe(true);
       }
     }

@@ -33,7 +33,7 @@
     "pathPattern": "/me/mailFolders",
     "method": "post",
     "toolName": "create-mail-folder",
-    "presets": ["mail", "outlook", "personal"],
+    "presets": ["mail", "outlook", "personal", "controlled-write"],
     "scopes": ["Mail.ReadWrite"],
     "llmTip": "Creates a top-level mail folder. Use create-mail-child-folder to create a subfolder inside an existing folder. Use list-mail-folders to find existing folder IDs."
   },
@@ -226,7 +226,7 @@
     "pathPattern": "/me/messages/{message-id}/move",
     "method": "post",
     "toolName": "move-mail-message",
-    "presets": ["mail", "outlook", "personal"],
+    "presets": ["mail", "outlook", "personal", "controlled-write"],
     "scopes": ["Mail.ReadWrite"],
     "llmTip": "destinationId accepts folder ID or well-known name (inbox, drafts, sentitems, deleteditems, junkemail, archive)."
   },

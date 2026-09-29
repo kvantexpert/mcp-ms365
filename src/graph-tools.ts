@@ -48,7 +48,11 @@ import { describeToolSchema, describeUtilityToolSchema } from './lib/tool-schema
 import { classifyMailMessage } from './lib/mail-classification.js';
 import { DEFAULT_MAIL_FOLDER_STRUCTURE_RULES, planMailAction } from './lib/mail-action-planner.js';
 import { createConfirmationRequest } from './lib/mail-action-confirmation.js';
-import { executeAction, prepareExecution } from './lib/mail-execution-engine.js';
+import {
+  executeAction,
+  isWriteExecutionEnabled,
+  prepareExecution,
+} from './lib/mail-execution-engine.js';
 import { queryParameterSchema } from './lib/query-parameter-schema.js';
 import {
   TOP_UNSUPPORTED_DELTA_TOOLS,
@@ -1962,6 +1966,29 @@ async function executeGraphTool(
   authManager?: AuthManager
 ): Promise<CallToolResult> {
   logger.info(`Tool ${tool.alias} called with params: ${describeParamsForLog(params)}`);
+
+  // The experimental controlled-write preset exposes only these operations for
+  // planning. This phase has no Graph write adapter, so direct tool calls stay
+  // blocked even if the eligibility flag is manually enabled.
+  if (tool.alias === 'create-mail-folder' || tool.alias === 'move-mail-message') {
+    const enabled = isWriteExecutionEnabled();
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            action: tool.alias,
+            status: 'blocked',
+            reason: enabled
+              ? 'approved execution request required; Graph write adapter is not implemented'
+              : 'controlled write execution disabled',
+            preview: params,
+          }),
+        },
+      ],
+      isError: true,
+    };
+  }
 
   if (
     isConfirmGateEnabled() &&

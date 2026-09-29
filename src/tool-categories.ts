@@ -41,6 +41,17 @@ const PRESET_META: Record<
     readOnly: true,
     disableAuthTools: true,
   },
+  'controlled-write': {
+    description: 'Allowlisted mail folder creation and single-message move tools',
+    omitUniversalUtilities: true,
+    disableAuthTools: true,
+  },
+  'mail-write-controlled': {
+    description: 'Experimental allowlisted mail write tools; execution remains disabled by default',
+    toolPreset: 'controlled-write',
+    omitUniversalUtilities: true,
+    disableAuthTools: true,
+  },
   calendar: {
     description: 'Calendar and event management',
   },

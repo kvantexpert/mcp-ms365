@@ -27,11 +27,14 @@ produce a `blocked` request.
 ## SAFE MODE
 
 Every request is marked `dryRun: true`. Calling `executeAction` never invokes
-Graph. A ready request is changed to `blocked` with reason `write execution disabled`;
-its result is recorded in the process-local audit log. Rejected or otherwise
-blocked requests remain blocked. The `executed` and `failed` statuses are
-reserved for a future, separately reviewed implementation and are not entered
-by this foundation.
+Graph. `WRITE_EXECUTION_ENABLED` is false unless set to the literal string
+`true`. The `canExecuteWriteAction` eligibility check requires that flag, an
+approved confirmation, and an allowlisted proposal action. Even when that
+eligibility check passes, this preparation-stage executor remains unimplemented:
+`executeAction` returns `blocked` and records the outcome in the process-local
+audit log. Rejected or otherwise blocked requests remain blocked. The `executed`
+and `failed` statuses are reserved for a future, separately reviewed
+implementation and are not entered by this foundation.
 
 The `preview-mail-execution` MCP utility accepts a confirmation ID, displays
 the proposed action, target, status and reason, and is marked read-only and
@@ -51,7 +54,9 @@ to verify the SAFE MODE flow; it is not durable or a production audit store.
 
 ## Future Write Mode
 
-This foundation does not enable write mode. A future execution implementation
+This foundation does not enable write execution. The `mail-write-controlled`
+preset exposes only the `create-mail-folder` and `move-mail-message` endpoints
+for planning; direct calls are blocked and do not reach Graph. A future execution implementation
 requires a separate permission review and explicit approval, a new checkpoint,
 and tests limited to one selected test email in an existing verified folder.
 Any future implementation must preserve preview, confirmation, audit, result

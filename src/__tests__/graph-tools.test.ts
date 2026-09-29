@@ -202,6 +202,52 @@ describe('graph-tools', () => {
     vi.clearAllMocks();
   });
 
+  it('blocks controlled write endpoints in planning mode without calling Graph', async () => {
+    const previousFlag = process.env.WRITE_EXECUTION_ENABLED;
+    delete process.env.WRITE_EXECUTION_ENABLED;
+    const endpoint = makeEndpoint({
+      method: 'post',
+      path: '/me/mailFolders',
+      alias: 'create-mail-folder',
+      parameters: [{ name: 'displayName', type: 'Body', schema: z.string() }],
+    });
+    mockEndpoints.push(endpoint);
+    mockEndpointsJson = [
+      makeConfig({
+        method: 'post',
+        pathPattern: '/me/mailFolders',
+        toolName: 'create-mail-folder',
+        presets: ['controlled-write'],
+        scopes: ['Mail.ReadWrite'],
+      }),
+    ];
+    const graphClient = createMockGraphClient();
+    const server = createMockServer();
+
+    try {
+      const { registerGraphTools } = await loadModule();
+      registerGraphTools(
+        server as unknown as Parameters<typeof registerGraphTools>[0],
+        graphClient as unknown as Parameters<typeof registerGraphTools>[1],
+        false,
+        '^create-mail-folder$'
+      );
+
+      const result = await server.tools.get('create-mail-folder')!.handler({
+        displayName: 'MCP-Test',
+        confirm: true,
+      });
+      const response = JSON.parse(result.content[0].text);
+
+      expect(response.status).toBe('blocked');
+      expect(response.reason).toBe('controlled write execution disabled');
+      expect(graphClient.graphRequest).not.toHaveBeenCalled();
+    } finally {
+      if (previousFlag === undefined) delete process.env.WRITE_EXECUTION_ENABLED;
+      else process.env.WRITE_EXECUTION_ENABLED = previousFlag;
+    }
+  });
+
   // ---- 0. Audit outcome metadata ----
   describe('audit outcome metadata', () => {
     it('includes HTTP status on successful Graph tool calls', async () => {

@@ -1,5 +1,5 @@
 import { readFileSync } from 'fs';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   confirmAction,
   createConfirmationRequest,
@@ -8,6 +8,7 @@ import {
 import { getMailAuditLog } from '../src/lib/mail-audit-log.js';
 import {
   executeAction,
+  canExecuteWriteAction,
   getExecutionStatus,
   prepareExecution,
 } from '../src/lib/mail-execution-engine.js';
@@ -30,6 +31,10 @@ function approvedConfirmation() {
 }
 
 describe('mail execution engine SAFE MODE', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it('creates a ready, dry-run execution request for an approved confirmation', () => {
     const confirmation = approvedConfirmation();
     const request = prepareExecution(confirmation.id);
@@ -45,11 +50,12 @@ describe('mail execution engine SAFE MODE', () => {
   it('blocks execution even when confirmation is approved', () => {
     const confirmation = approvedConfirmation();
     const request = prepareExecution(confirmation.id);
+    vi.stubEnv('WRITE_EXECUTION_ENABLED', 'false');
 
     const result = executeAction(request.id);
 
     expect(result.status).toBe('blocked');
-    expect(result.reason).toBe('write execution disabled');
+    expect(result.reason).toBe('controlled write execution disabled');
     expect(result.dryRun).toBe(true);
   });
 
@@ -75,7 +81,7 @@ describe('mail execution engine SAFE MODE', () => {
       action: 'move-message',
       timestamp: '2026-09-30T12:00:00.000Z',
       result: 'blocked',
-      reason: 'write execution disabled',
+      reason: 'controlled write execution disabled',
     });
     expect(result.status).toBe('blocked');
   });
@@ -107,5 +113,36 @@ describe('mail execution engine SAFE MODE', () => {
 
     expect(request.status).toBe('blocked');
     expect(request.reason).toBe('action not allowed');
+  });
+
+  it('requires WRITE_EXECUTION_ENABLED, an approved confirmation, and an allowed action', () => {
+    const confirmation = approvedConfirmation();
+    vi.stubEnv('WRITE_EXECUTION_ENABLED', 'false');
+    expect(canExecuteWriteAction(confirmation.id)).toBe(false);
+
+    vi.stubEnv('WRITE_EXECUTION_ENABLED', 'true');
+    expect(canExecuteWriteAction(confirmation.id)).toBe(true);
+
+    const rejected = rejectAction(createConfirmationRequest(makeProposal()).id);
+    expect(canExecuteWriteAction(rejected.id)).toBe(false);
+
+    const unsupported = createConfirmationRequest({
+      ...makeProposal(),
+      action: 'send-mail',
+    } as unknown as MailActionProposal);
+    const approvedUnsupported = confirmAction(unsupported.id);
+    expect(canExecuteWriteAction(approvedUnsupported.id)).toBe(false);
+  });
+
+  it('keeps executeAction blocked even when the eligibility flag is enabled', () => {
+    const confirmation = approvedConfirmation();
+    const request = prepareExecution(confirmation.id);
+    vi.stubEnv('WRITE_EXECUTION_ENABLED', 'true');
+
+    const result = executeAction(request.id);
+
+    expect(result.status).toBe('blocked');
+    expect(result.reason).toContain('executor');
+    expect(result.dryRun).toBe(true);
   });
 });

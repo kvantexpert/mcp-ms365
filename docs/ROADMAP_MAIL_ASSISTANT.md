@@ -384,3 +384,9 @@ The execution engine foundation is implemented in SAFE MODE. It prepares and aud
 Status: **Permission Preparation**
 
 The proposed first controlled scenario is to create the `MCP-Test` folder and move one explicitly selected message from `Inbox` to that folder. This remains planning only until permissions are reviewed, a separate checkpoint and tests are completed, and the user explicitly approves the write operation. No consent or Graph write operation is performed in the permission preparation stage.
+
+## Phase 1.3.5 — Controlled Write Mode Preparation
+
+Status: **Implementation**
+
+Prepare the opt-in `mail-write-controlled` preset with only the `create-mail-folder` and `move-mail-message` tools. `WRITE_EXECUTION_ENABLED` defaults to false. In this preparation stage the execution engine remains SAFE MODE and direct Graph write tool calls remain blocked; no permission transition or Graph write executor is enabled.

@@ -20,6 +20,25 @@ export interface ExecutionRequest {
 const executionRequests = new Map<string, ExecutionRequest>();
 const ALLOWED_ACTIONS = new Set<string>(['move-message']);
 
+/** Fail-closed runtime flag; no environment setting means SAFE MODE. */
+export function isWriteExecutionEnabled(): boolean {
+  return process.env.WRITE_EXECUTION_ENABLED === 'true';
+}
+
+/**
+ * Checks the feature flag, current approved confirmation and its action allowlist.
+ * This is an eligibility check only; the execution adapter is not implemented.
+ */
+export function canExecuteWriteAction(confirmationId: string, now: Date = new Date()): boolean {
+  if (!isWriteExecutionEnabled()) return false;
+  const confirmation = getConfirmationStatus(confirmationId, now);
+  return Boolean(
+    confirmation &&
+    confirmation.status === 'approved' &&
+    ALLOWED_ACTIONS.has(confirmation.actionProposal.action)
+  );
+}
+
 function snapshot(request: ExecutionRequest): ExecutionRequest {
   return { ...request };
 }
@@ -65,7 +84,9 @@ export function executeAction(id: string, now: Date = new Date()): ExecutionRequ
 
   if (request.status === 'ready') {
     request.status = 'blocked';
-    request.reason = 'write execution disabled';
+    request.reason = canExecuteWriteAction(request.confirmationId, now)
+      ? 'controlled write executor is not implemented'
+      : 'controlled write execution disabled';
   }
 
   recordMailAuditEntry(
