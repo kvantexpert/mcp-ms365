@@ -9,6 +9,7 @@ export const mockMailWriteAdapter: MailWriteAdapter = {
       mode: 'mock',
       operation: 'create-folder',
       resourceId: `mock-folder-${randomUUID()}`,
+      graph: false,
     };
   },
   async moveMessage(_input): Promise<MailWriteAdapterResult> {
@@ -17,6 +18,7 @@ export const mockMailWriteAdapter: MailWriteAdapter = {
       mode: 'mock',
       operation: 'move-message',
       resourceId: `mock-message-${randomUUID()}`,
+      graph: false,
     };
   },
 };

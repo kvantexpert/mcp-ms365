@@ -26,7 +26,7 @@ If any check fails, the request is blocked with `write execution validation fail
 
 ## Current Mode
 
-**MOCK ONLY**. The default adapter is `mock-mail-write-adapter.ts`. It has no Graph client dependency. `dryRun` remains true because no mailbox state is changed; an `executed` status means only that a mock call succeeded. Direct MCP Graph write endpoints remain blocked in this phase.
+**MOCK ONLY**. The adapter factory defaults to `mock` and selects the Graph-shaped mock adapter. `WRITE_ADAPTER_MODE=graph` selects only a placeholder that returns `not-implemented`; it has no Graph client or network dependency. `dryRun` remains true because no mailbox state is changed; an `executed` status means only that a mock call succeeded. Direct MCP Graph write endpoints remain blocked in this phase.
 
 ## Future
 

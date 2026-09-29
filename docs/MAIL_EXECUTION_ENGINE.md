@@ -31,10 +31,11 @@ produce a `blocked` request.
 Every request is marked `dryRun: true`; mock execution never changes mailbox
 state. `WRITE_EXECUTION_ENABLED` is false unless set to the literal string
 `true`. `validateWriteExecution` requires that flag, an approved confirmation,
-and an exact allowlisted operation. A valid request is dispatched to the local
-mock adapter, never to Graph, and its result is recorded in the process-local
-audit log. Rejected or otherwise blocked requests remain blocked. The `executed`
-status in this phase means only that the mock adapter returned success.
+and an exact allowlisted operation. A valid request is dispatched to the
+factory-selected adapter. The default mock returns a local simulation result;
+the `graph` mode is only a `not-implemented` placeholder with no Graph client.
+Results are recorded in the process-local audit log. The `executed` status in
+this phase means only that the mock adapter returned success.
 
 The `preview-mail-execution` MCP utility accepts a confirmation ID, displays
 the proposed action, target, status and reason, and is marked read-only and

@@ -397,8 +397,8 @@ Status: **Completed (Mock Only)**
 
 The isolated adapter interface exercises `create-folder` and `move-message` through a mock adapter only. It validates the feature flag, approved confirmation, and operation allowlist. No Graph write client is connected and no mailbox state is changed.
 
-## Phase 1.3.7 — Real Graph Write Adapter
+## Phase 1.3.7 — Real Graph Write Adapter Preparation
 
-Status: **Preparation**
+Status: **Implementation**
 
-Plan the Graph-backed adapter only after a separate permission transition and explicit approval. Until that work is separately authorized, the system remains **MOCK ONLY**.
+Add the adapter factory and a Graph adapter placeholder that returns `not-implemented`. The factory defaults to mock mode. No Graph client, write API, permission transition, or mailbox change is enabled in this phase.

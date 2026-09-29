@@ -11,10 +11,11 @@ export interface MoveMessageInput {
 }
 
 export interface MailWriteAdapterResult {
-  status: 'success';
-  mode: 'mock';
+  status: 'success' | 'mock-success' | 'not-implemented';
+  mode: 'mock' | 'graph';
   operation: MailWriteOperation;
-  resourceId: string;
+  resourceId: string | null;
+  graph: false;
 }
 
 /** Narrow interface for the only mail write operations in the approved plan. */

@@ -2,12 +2,8 @@ import { randomUUID } from 'crypto';
 import { getConfirmationStatus } from './mail-action-confirmation.js';
 import { recordMailAuditEntry } from './mail-audit-log.js';
 import type { MailActionProposal } from './mail-action-planner.js';
-import { mockMailWriteAdapter } from './mock-mail-write-adapter.js';
-import type {
-  MailWriteAdapter,
-  MailWriteAdapterResult,
-  MailWriteOperation,
-} from './mail-write-adapter.js';
+import { createMailWriteAdapter, validateWriteAdapterMode } from './mail-write-adapter-factory.js';
+import type { MailWriteAdapter, MailWriteAdapterResult } from './mail-write-adapter.js';
 
 export type ExecutionStatus = 'ready' | 'blocked' | 'executed' | 'failed';
 
@@ -19,7 +15,7 @@ export interface ExecutionRequest {
   target: string | null;
   status: ExecutionStatus;
   dryRun: true;
-  mode: 'planning' | 'mock';
+  mode: 'planning' | 'mock' | 'graph';
   createdAt: string;
   reason: string;
   adapterResult: MailWriteAdapterResult | null;
@@ -33,10 +29,7 @@ export function isWriteExecutionEnabled(): boolean {
   return process.env.WRITE_EXECUTION_ENABLED === 'true';
 }
 
-/**
- * Checks the feature flag, current approved confirmation and its action allowlist.
- * This is an eligibility check only; the execution adapter is not implemented.
- */
+/** Result returned by write-execution validation. */
 export interface WriteExecutionValidation {
   valid: boolean;
   status: 'ready' | 'blocked';
@@ -54,12 +47,13 @@ export function validateWriteExecution(
     status: 'blocked',
     reason: 'write execution validation failed',
   });
+  if (!validateWriteAdapterMode().valid) return blocked();
   if (!isWriteExecutionEnabled()) return blocked();
   const confirmation = getConfirmationStatus(confirmationId, now);
   if (!confirmation || confirmation.status !== 'approved') return blocked();
   if (!ALLOWED_OPERATIONS.has(operation)) return blocked();
   if (confirmation.actionProposal.action !== operation) return blocked();
-  return { valid: true, status: 'ready', reason: 'approved mock execution' };
+  return { valid: true, status: 'ready', reason: 'approved operation for selected adapter' };
 }
 
 /** Backward-compatible eligibility helper for proposals managed by this engine. */
@@ -108,7 +102,7 @@ export function prepareExecution(confirmationId: string, now: Date = new Date())
     dryRun: true,
     mode: 'planning',
     createdAt: now.toISOString(),
-    reason: reason || 'approved confirmation; mock execution is opt-in',
+    reason: reason || 'approved confirmation; adapter execution is opt-in',
     adapterResult: null,
   };
   executionRequests.set(request.id, request);
@@ -122,7 +116,7 @@ export function prepareExecution(confirmationId: string, now: Date = new Date())
 export async function executeAction(
   id: string,
   now: Date = new Date(),
-  adapter: MailWriteAdapter = mockMailWriteAdapter
+  adapter?: MailWriteAdapter
 ): Promise<ExecutionRequest> {
   const request = executionRequests.get(id);
   if (!request) throw new Error(`Execution request not found: ${id}`);
@@ -138,23 +132,31 @@ export async function executeAction(
       request.reason = 'write execution validation failed';
     } else {
       try {
+        const selectedAdapter = adapter ?? createMailWriteAdapter();
         request.adapterResult =
           confirmation.actionProposal.action === 'create-folder'
-            ? await adapter.createFolder({
+            ? await selectedAdapter.createFolder({
                 parentFolderId: confirmation.actionProposal.parentFolderId,
                 displayName: confirmation.actionProposal.displayName,
               })
-            : await adapter.moveMessage({
+            : await selectedAdapter.moveMessage({
                 messageId: confirmation.actionProposal.messageId,
                 destinationFolderId: confirmation.actionProposal.targetFolder,
               });
-        request.status = 'executed';
-        request.mode = 'mock';
-        request.reason = 'mock adapter execution succeeded';
-        auditResult = 'executed';
+        if (request.adapterResult.status === 'not-implemented') {
+          request.status = 'blocked';
+          request.mode = 'graph';
+          request.reason = 'Graph write adapter not implemented';
+          auditResult = 'blocked';
+        } else {
+          request.status = 'executed';
+          request.mode = request.adapterResult.mode;
+          request.reason = 'mock adapter execution succeeded';
+          auditResult = 'executed';
+        }
       } catch (error) {
         request.status = 'failed';
-        request.mode = 'mock';
+        request.mode = 'planning';
         request.reason = error instanceof Error ? error.message : 'mock adapter execution failed';
         auditResult = 'failed';
       }
