@@ -58,9 +58,10 @@ describe('Tool Filtering', () => {
     registerGraphTools(server, graphClient, false);
 
     // 5 mocked graph endpoints via registerTool; utilities via tool
-    // (parse-teams-url, download-bytes, download-bytes-to-file, get-download-url)
+    // (classify-mail-message, parse-teams-url, download-bytes, download-bytes-to-file,
+    // get-download-url)
     expect(registerToolSpy).toHaveBeenCalledTimes(5);
-    expect(toolSpy).toHaveBeenCalledTimes(4);
+    expect(toolSpy).toHaveBeenCalledTimes(5);
     expect(registerToolSpy).toHaveBeenCalledWith(
       'list-mail-messages',
       expect.any(Object),
@@ -123,9 +124,9 @@ describe('Tool Filtering', () => {
   it('should handle invalid regex patterns gracefully', () => {
     registerGraphTools(server, graphClient, false, '[invalid regex');
 
-    // 5 mocked endpoints + utilities (no filter applied on invalid regex)
+    // 5 mocked endpoints + 5 utilities (no filter applied on invalid regex)
     expect(registerToolSpy).toHaveBeenCalledTimes(5);
-    expect(toolSpy).toHaveBeenCalledTimes(4);
+    expect(toolSpy).toHaveBeenCalledTimes(5);
   });
 
   it('should combine read-only and filtering correctly', () => {
@@ -135,6 +136,19 @@ describe('Tool Filtering', () => {
     expect(registerToolSpy).toHaveBeenCalledWith(
       'list-mail-messages',
       expect.any(Object),
+      expect.any(Function)
+    );
+    expect(toolSpy).toHaveBeenCalledWith(
+      'classify-mail-message',
+      expect.any(String),
+      expect.objectContaining({
+        subject: expect.anything(),
+        sender: expect.anything(),
+        senderEmail: expect.anything(),
+        bodyPreview: expect.anything(),
+        receivedDateTime: expect.anything(),
+      }),
+      expect.objectContaining({ readOnlyHint: true, openWorldHint: false }),
       expect.any(Function)
     );
   });

@@ -175,6 +175,11 @@ describe('utility tools in presets', () => {
     expect(inPreset('mail', 'get-download-url')).toBe(false);
   });
 
+  it('classification utility is limited to the mail preset', () => {
+    expect(inPreset('mail-readonly', 'classify-mail-message')).toBe(true);
+    expect(inPreset('calendar', 'classify-mail-message')).toBe(false);
+  });
+
   it('parse-teams-url stays scoped to teams/work', () => {
     expect(inPreset('teams', 'parse-teams-url')).toBe(true);
     expect(inPreset('mail', 'parse-teams-url')).toBe(false);

@@ -45,6 +45,7 @@ export interface DiscoverySearchIndex {
   nameTokens: Map<string, Set<string>>;
 }
 import { describeToolSchema, describeUtilityToolSchema } from './lib/tool-schema.js';
+import { classifyMailMessage } from './lib/mail-classification.js';
 import { queryParameterSchema } from './lib/query-parameter-schema.js';
 import {
   TOP_UNSUPPORTED_DELTA_TOOLS,
@@ -1132,6 +1133,33 @@ async function mintDownloadUrl(
 }
 
 export const UTILITY_TOOLS: readonly UtilityTool[] = [
+  {
+    name: 'classify-mail-message',
+    method: 'GET',
+    path: 'tool:classify-mail-message',
+    searchKeywords: 'email classification classify topic sender finance project security analysis',
+    description:
+      'Classify supplied Outlook message fields using local deterministic rules. Pass fields from list-mail-messages or get-mail-message. Returns a category, heuristic confidence, reasons and suggested folder. This utility makes no Graph request and never changes mailbox data.',
+    readOnlyHint: true,
+    openWorldHint: false,
+    buildSchema: () => ({
+      subject: z.string().describe('Message subject, as returned by Microsoft Graph.'),
+      sender: z.string().describe('Sender display name.'),
+      senderEmail: z.string().describe('Sender email address.'),
+      bodyPreview: z.string().describe('Message body preview, not the full body.'),
+      receivedDateTime: z.string().describe('Message received date and time from Microsoft Graph.'),
+    }),
+    execute: async (params) => {
+      const result = classifyMailMessage({
+        subject: params.subject as string,
+        sender: params.sender as string,
+        senderEmail: params.senderEmail as string,
+        bodyPreview: params.bodyPreview as string,
+        receivedDateTime: params.receivedDateTime as string,
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+    },
+  },
   {
     name: 'parse-teams-url',
     method: 'POST',

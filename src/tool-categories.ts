@@ -108,7 +108,9 @@ const UNIVERSAL_UTILITY_TOOLS = ['download-bytes', 'download-bytes-to-file'];
 // resolves a pre-authenticated URL for drive/SharePoint file content ONLY (not mail/event
 // attachments or recordings), so it rides with the drive-backed presets; where it is absent the
 // universal download-bytes still reads the bytes. parse-teams-url only parses Teams meeting URLs.
+// classify-mail-message is a local utility over message fields supplied by mail read tools.
 const SCOPED_UTILITY_TOOLS: Record<string, string[]> = {
+  'classify-mail-message': ['mail'],
   'get-download-url': ['files', 'onedrive', 'personal', 'work', 'search'],
   'parse-teams-url': ['teams', 'teams-write', 'work'],
 };
