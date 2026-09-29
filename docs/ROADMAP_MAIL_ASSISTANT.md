@@ -381,6 +381,6 @@ The execution engine foundation is implemented in SAFE MODE. It prepares and aud
 
 ## Phase 1.3.4 — First Controlled Write
 
-Status: **Permission Review**
+Status: **Permission Preparation**
 
-The proposed first controlled scenario is to create the `MCP-Test` folder and move one explicitly selected message from `Inbox` to that folder. This remains planning only until permissions are reviewed, a separate checkpoint and tests are completed, and the user explicitly approves the write operation.
+The proposed first controlled scenario is to create the `MCP-Test` folder and move one explicitly selected message from `Inbox` to that folder. This remains planning only until permissions are reviewed, a separate checkpoint and tests are completed, and the user explicitly approves the write operation. No consent or Graph write operation is performed in the permission preparation stage.
