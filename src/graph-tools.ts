@@ -46,6 +46,7 @@ export interface DiscoverySearchIndex {
 }
 import { describeToolSchema, describeUtilityToolSchema } from './lib/tool-schema.js';
 import { classifyMailMessage } from './lib/mail-classification.js';
+import { DEFAULT_MAIL_FOLDER_STRUCTURE_RULES, planMailAction } from './lib/mail-action-planner.js';
 import { queryParameterSchema } from './lib/query-parameter-schema.js';
 import {
   TOP_UNSUPPORTED_DELTA_TOOLS,
@@ -1158,6 +1159,73 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
         receivedDateTime: params.receivedDateTime as string,
       });
       return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+    },
+  },
+  {
+    name: 'preview-mail-organization',
+    method: 'GET',
+    path: 'tool:preview-mail-organization',
+    searchKeywords: 'mail organization dry run preview move action folder classification',
+    description:
+      'Create a dry-run proposal for organizing one supplied Outlook message. Returns its classification, proposed destination, reason and preview status. Requires message fields supplied by the caller; makes no Graph request and performs no mailbox changes.',
+    readOnlyHint: true,
+    openWorldHint: false,
+    buildSchema: () => ({
+      messageId: z
+        .string()
+        .min(1)
+        .describe('Message id from list-mail-messages or get-mail-message.'),
+      subject: z.string().describe('Message subject.'),
+      sender: z.string().describe('Sender display name.'),
+      senderEmail: z.string().describe('Sender email address.'),
+      bodyPreview: z.string().describe('Message preview text, not the full body.'),
+      receivedDateTime: z.string().describe('Message received date and time from Microsoft Graph.'),
+      currentFolder: z
+        .string()
+        .optional()
+        .describe('Known current folder display name, if available.'),
+    }),
+    execute: async (params) => {
+      const classification = classifyMailMessage({
+        subject: params.subject as string,
+        sender: params.sender as string,
+        senderEmail: params.senderEmail as string,
+        bodyPreview: params.bodyPreview as string,
+        receivedDateTime: params.receivedDateTime as string,
+      });
+      const proposal = planMailAction(
+        {
+          messageId: params.messageId as string,
+          subject: params.subject as string,
+          ...(typeof params.currentFolder === 'string'
+            ? { currentFolder: params.currentFolder }
+            : {}),
+        },
+        classification,
+        DEFAULT_MAIL_FOLDER_STRUCTURE_RULES
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              email: params.subject,
+              classification,
+              suggestedAction: {
+                action: proposal.action,
+                currentFolder: proposal.currentFolder,
+                targetFolder: proposal.targetFolder,
+                reasons: proposal.reason,
+                status: proposal.status,
+              },
+              mode: 'DRY RUN',
+              mailboxChangesPerformed: false,
+              message: 'No changes performed.',
+            }),
+          },
+        ],
+      };
     },
   },
   {

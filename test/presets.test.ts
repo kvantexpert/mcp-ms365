@@ -180,6 +180,11 @@ describe('utility tools in presets', () => {
     expect(inPreset('calendar', 'classify-mail-message')).toBe(false);
   });
 
+  it('organization preview utility is limited to the mail preset', () => {
+    expect(inPreset('mail-readonly', 'preview-mail-organization')).toBe(true);
+    expect(inPreset('calendar', 'preview-mail-organization')).toBe(false);
+  });
+
   it('parse-teams-url stays scoped to teams/work', () => {
     expect(inPreset('teams', 'parse-teams-url')).toBe(true);
     expect(inPreset('mail', 'parse-teams-url')).toBe(false);
