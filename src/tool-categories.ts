@@ -113,6 +113,7 @@ const SCOPED_UTILITY_TOOLS: Record<string, string[]> = {
   'classify-mail-message': ['mail'],
   'preview-mail-organization': ['mail'],
   'preview-mail-action-confirmation': ['mail'],
+  'preview-mail-execution': ['mail'],
   'get-download-url': ['files', 'onedrive', 'personal', 'work', 'search'],
   'parse-teams-url': ['teams', 'teams-write', 'work'],
 };

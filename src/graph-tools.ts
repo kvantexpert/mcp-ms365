@@ -48,6 +48,7 @@ import { describeToolSchema, describeUtilityToolSchema } from './lib/tool-schema
 import { classifyMailMessage } from './lib/mail-classification.js';
 import { DEFAULT_MAIL_FOLDER_STRUCTURE_RULES, planMailAction } from './lib/mail-action-planner.js';
 import { createConfirmationRequest } from './lib/mail-action-confirmation.js';
+import { executeAction, prepareExecution } from './lib/mail-execution-engine.js';
 import { queryParameterSchema } from './lib/query-parameter-schema.js';
 import {
   TOP_UNSUPPORTED_DELTA_TOOLS,
@@ -1271,6 +1272,41 @@ export const UTILITY_TOOLS: readonly UtilityTool[] = [
               confirmedAt: request.confirmedAt,
               expiresAt: request.expiresAt,
               executionPerformed: false,
+            }),
+          },
+        ],
+      };
+    },
+  },
+  {
+    name: 'preview-mail-execution',
+    method: 'GET',
+    path: 'tool:preview-mail-execution',
+    searchKeywords: 'mail execution safe mode preview approved confirmation blocked status',
+    description:
+      'Show whether an approved mail action is eligible for execution. In the current SAFE MODE every action is blocked with write execution disabled and recorded in the local audit log. Makes no Graph request and never changes mailbox data.',
+    readOnlyHint: true,
+    openWorldHint: false,
+    buildSchema: () => ({
+      confirmationId: z.string().min(1).describe('Confirmation request UUID.'),
+    }),
+    execute: async (params) => {
+      const execution = prepareExecution(params.confirmationId as string);
+      const result = executeAction(execution.id);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              executionId: result.id,
+              confirmationId: result.confirmationId,
+              action: result.action,
+              messageId: result.messageId,
+              target: result.target,
+              status: result.status,
+              dryRun: result.dryRun,
+              reason: result.reason,
             }),
           },
         ],
