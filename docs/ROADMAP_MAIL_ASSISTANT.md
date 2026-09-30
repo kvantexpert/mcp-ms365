@@ -429,9 +429,21 @@ Document a safe local token/account cache reset procedure and provide a preview-
 
 ## Phase 1.3.9.5 — Clean OAuth State Reset
 
-Status: **Ready for execution**
+Status: **Completed**
 
-The `--clear-auth-cache` command previews by default and requires `--confirm` to clear only the local token-cache and selected-account records. It preserves the cache-encryption key and fails closed when configured custom storage or the OS credential store cannot be safely verified. This phase prepares the guarded operation; do not run it without an explicit reset confirmation. Phase 1.3.9 remains **Permission Activation Pending**.
+The confirmed local reset removed the token-cache and selected-account records. It preserved the cache-encryption key. Post-reset diagnostics reported no cached account and no access tokens. Microsoft consent was not revoked and permissions were not changed. See `docs/OAUTH_STATE_RESET_EXECUTION_RESULT.md`.
+
+## Phase 1.3.9.6 — Execute OAuth State Reset
+
+Status: **Completed**
+
+The cache reset completed after the guarded pre-deletion inventory could inspect both the local filesystem and OS credential store. No Graph API call or mailbox change occurred.
+
+## Phase 1.3.9.7 — Fresh Permission Activation
+
+Status: **Pending**
+
+The next activation attempt must request only the reviewed scopes and verify the actual returned permissions. This status does not authorize starting device login or Microsoft consent.
 
 ## Phase 1 Review
 

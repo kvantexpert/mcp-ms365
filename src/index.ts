@@ -121,7 +121,13 @@ async function main(): Promise<void> {
               cacheEncryptionKey: inventory.credentialStore.cacheKeyRecords,
             }
           : { status: inventory.credentialStore.status };
-      const result = { ...preview, keychainRecords, inventory };
+      const result = {
+        ...preview,
+        mode: args.confirm ? 'confirmed-preflight' : 'dry-run',
+        status: args.confirm ? 'preflight' : 'preview-only',
+        keychainRecords,
+        inventory,
+      };
       console.log(JSON.stringify(result, null, 2));
 
       if (args.confirm) {
