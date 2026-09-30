@@ -190,6 +190,71 @@ export function getCacheKeyPath(): string {
   return path.join(path.dirname(getTokenCachePath()), CACHE_KEY_FILE);
 }
 
+/** Inspect known local cache slots without loading, migrating, or exposing their values. */
+export async function inspectAuthCacheStorage() {
+  const tokenCachePath = getTokenCachePath();
+  const selectedAccountPath = getSelectedAccountPath();
+  const cacheKeyPath = getCacheKeyPath();
+  let credentialStore:
+    | {
+        status: 'inspected';
+        tokenCacheRecords: number;
+        selectedAccountRecords: number;
+        cacheKeyRecords: number;
+      }
+    | {
+        status: 'disabled' | 'unavailable';
+        tokenCacheRecords: null;
+        selectedAccountRecords: null;
+        cacheKeyRecords: null;
+      };
+
+  const kt = await getKeytar();
+  if (!kt) {
+    credentialStore = {
+      status: keytarEnabled() ? 'unavailable' : 'disabled',
+      tokenCacheRecords: null,
+      selectedAccountRecords: null,
+      cacheKeyRecords: null,
+    };
+  } else {
+    try {
+      const credentials = await kt.findCredentials(SERVICE_NAME);
+      credentialStore = {
+        status: 'inspected',
+        tokenCacheRecords: credentials.filter((item) => item.account === TOKEN_CACHE_ACCOUNT)
+          .length,
+        selectedAccountRecords: credentials.filter((item) => item.account === SELECTED_ACCOUNT_KEY)
+          .length,
+        cacheKeyRecords: credentials.filter((item) => item.account === CACHE_KEY_ACCOUNT).length,
+      };
+    } catch {
+      credentialStore = {
+        status: 'unavailable',
+        tokenCacheRecords: null,
+        selectedAccountRecords: null,
+        cacheKeyRecords: null,
+      };
+    }
+  }
+
+  return {
+    backend: process.env[AUTH_CACHE_COMMAND_ENV]?.trim()
+      ? 'custom-command'
+      : 'default-file-and-keychain',
+    customCommandConfigured: Boolean(process.env[AUTH_CACHE_COMMAND_ENV]?.trim()),
+    tokenCache: { path: tokenCachePath, fileRecords: existsSync(tokenCachePath) ? 1 : 0 },
+    selectedAccount: {
+      path: selectedAccountPath,
+      fileRecords: existsSync(selectedAccountPath) ? 1 : 0,
+    },
+    cacheEncryptionKey: { path: cacheKeyPath, fileRecords: existsSync(cacheKeyPath) ? 1 : 0 },
+    credentialStore,
+    actionsTaken: [],
+    graphApiCalls: 0,
+  };
+}
+
 let legacyPathsMigrated = false;
 
 /**

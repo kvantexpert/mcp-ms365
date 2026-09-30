@@ -15,11 +15,16 @@ import { dumpError, getActiveResources } from './crash-logging.js';
 import { version } from './version.js';
 import { existsSync } from 'node:fs';
 import {
+  DefaultTokenCacheStorage,
   getCacheKeyPath,
+  inspectAuthCacheStorage,
   getSelectedAccountPath,
   getTokenCachePath,
 } from './token-cache-storage.js';
-import { buildAuthCacheResetPreview } from './lib/oauth-reset-dry-run.js';
+import {
+  buildAuthCacheResetPreview,
+  clearLocalAuthCacheRecords,
+} from './lib/oauth-reset-dry-run.js';
 import {
   analyzePermissionScopes,
   PERMISSION_CLEANUP_EXPECTED_SCOPES,
@@ -63,6 +68,11 @@ async function main(): Promise<void> {
     const readOnly = args.readOnly || false;
     const effectiveScopes = resolveAuthScopes(args);
 
+    if (args.confirm && !args.clearAuthCache) {
+      console.error('--confirm is only valid with --clear-auth-cache.');
+      process.exit(1);
+    }
+
     if (args.listPermissions) {
       const diagnostics = buildAllowedScopeDiagnostics(args);
       const mode = includeWorkScopes ? 'org' : 'personal';
@@ -88,34 +98,53 @@ async function main(): Promise<void> {
     }
 
     if (args.clearAuthCache) {
-      if (!args.dryRun) {
-        console.error(
-          JSON.stringify({
-            status: 'blocked',
-            reason: '--clear-auth-cache is preview-only and requires --dry-run',
-            actionsTaken: [],
-          })
-        );
+      if (args.dryRun && args.confirm) {
+        console.error('--dry-run and --confirm cannot be used together.');
         process.exit(1);
       }
 
-      const tokenCachePath = getTokenCachePath();
-      const selectedAccountPath = getSelectedAccountPath();
-      const cacheKeyPath = getCacheKeyPath();
-      console.log(
-        JSON.stringify(
-          buildAuthCacheResetPreview({
-            tokenCachePath,
-            tokenCacheFileExists: existsSync(tokenCachePath),
-            selectedAccountPath,
-            selectedAccountFileExists: existsSync(selectedAccountPath),
-            cacheKeyPath,
-            cacheKeyFileExists: existsSync(cacheKeyPath),
-          }),
-          null,
-          2
-        )
-      );
+      const inventory = await inspectAuthCacheStorage();
+      const preview = buildAuthCacheResetPreview({
+        tokenCachePath: getTokenCachePath(),
+        tokenCacheFileExists: existsSync(getTokenCachePath()),
+        selectedAccountPath: getSelectedAccountPath(),
+        selectedAccountFileExists: existsSync(getSelectedAccountPath()),
+        cacheKeyPath: getCacheKeyPath(),
+        cacheKeyFileExists: existsSync(getCacheKeyPath()),
+      });
+      const keychainRecords =
+        inventory.credentialStore.status === 'inspected'
+          ? {
+              status: 'inspected' as const,
+              tokenCache: inventory.credentialStore.tokenCacheRecords,
+              selectedAccount: inventory.credentialStore.selectedAccountRecords,
+              cacheEncryptionKey: inventory.credentialStore.cacheKeyRecords,
+            }
+          : { status: inventory.credentialStore.status };
+      const result = { ...preview, keychainRecords, inventory };
+      console.log(JSON.stringify(result, null, 2));
+
+      if (args.confirm) {
+        if (inventory.customCommandConfigured || inventory.credentialStore.status !== 'inspected') {
+          console.error(
+            'Cache cleanup blocked: custom storage or OS credential storage could not be safely verified.'
+          );
+          process.exit(1);
+        }
+        const localStorage = new DefaultTokenCacheStorage();
+        const cleared = await clearLocalAuthCacheRecords((key) => localStorage.delete(key));
+        const after = await inspectAuthCacheStorage();
+        const fullyCleared =
+          after.tokenCache.fileRecords === 0 &&
+          after.selectedAccount.fileRecords === 0 &&
+          after.credentialStore.status === 'inspected' &&
+          after.credentialStore.tokenCacheRecords === 0 &&
+          after.credentialStore.selectedAccountRecords === 0;
+        console.log(
+          JSON.stringify({ ...cleared, status: fullyCleared ? 'cleared' : 'incomplete' })
+        );
+        if (!fullyCleared) process.exit(1);
+      }
       process.exit(0);
     }
 

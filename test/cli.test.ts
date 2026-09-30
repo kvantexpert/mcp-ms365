@@ -94,6 +94,12 @@ describe('CLI Module', () => {
       expect(result.dryRun).toBe(true);
     });
 
+    it('should parse --confirm for an explicitly requested auth cache reset', () => {
+      commanderMocks.mockCommand.opts.mockReturnValue({ clearAuthCache: true, confirm: true });
+
+      expect(parseArgs().confirm).toBe(true);
+    });
+
     it('should parse --diagnose-permissions', () => {
       commanderMocks.mockCommand.opts.mockReturnValue({ diagnosePermissions: true });
 

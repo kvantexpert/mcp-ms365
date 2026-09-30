@@ -28,7 +28,7 @@ Do not delete or change:
 - mailbox data;
 - the local cache-encryption key (`.cache-key`).
 
-The current `--clear-auth-cache --dry-run` command only reports file paths and whether those files exist. It does not read cache contents, inspect keychain records, delete files, invoke storage deletion, or contact Microsoft Graph. Keychain-backed records are reported as not inspected.
+`--clear-auth-cache` without `--confirm` runs in preview-only mode. Add `--dry-run` to state that intent explicitly. Preview reports configured local file paths and existence plus known OS credential-store record counts; it never emits stored values. It does not migrate or delete records or contact Microsoft Graph. A custom cache command or unavailable OS credential store blocks confirmed cleanup because the backend cannot be safely verified.
 
 On the preparation run, the default token-cache, selected-account, and encryption-key files were absent at their configured paths. Keychain and custom command-backed records were not inspected, so this does not establish that no cached account or token exists in other configured storage.
 
@@ -38,7 +38,7 @@ Checkpoint commit: `545b4d0` (`feat: add permission cleanup analysis`).
 
 Checkpoint tag: `mail-assistant-before-oauth-consent-reset-v1`.
 
-The cleanup command must be run with `--dry-run`; without it, the command fails closed. No destructive cache reset command is implemented in this phase.
+The cleanup command requires the explicit `--confirm` flag to clear exactly the local token-cache and selected-account records. It preserves the cache-encryption key. `--confirm` cannot be combined with `--dry-run`. No confirmed reset has been run as part of this preparation.
 
 ## After Reset
 

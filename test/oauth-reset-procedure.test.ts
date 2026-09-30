@@ -64,6 +64,6 @@ describe('OAuth consent reset dry-run preview', () => {
 
     expect(report.mode).toBe('dry-run');
     expect(report.graphApiCalls).toBe(0);
-    expect(report.keychainRecords).toBe('not inspected');
+    expect(report.actionsTaken).toEqual([]);
   });
 });

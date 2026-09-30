@@ -425,7 +425,13 @@ Add local diagnostics that compare the minimal expected mail scopes with scope m
 
 Status: **Preparation**
 
-Document a safe local token/account cache reset procedure and provide `--clear-auth-cache --dry-run` to preview cache file paths and existence only. The preview performs no deletion, keychain inspection, consent revocation, login, permission change, or Graph call. Phase 1.3.9 remains **Permission Activation Pending**.
+Document a safe local token/account cache reset procedure and provide a preview-only cache inventory. No cache deletion, consent revocation, login, permission change, or Graph call occurred in this phase. Phase 1.3.9 remains **Permission Activation Pending**.
+
+## Phase 1.3.9.5 — Clean OAuth State Reset
+
+Status: **Ready for execution**
+
+The `--clear-auth-cache` command previews by default and requires `--confirm` to clear only the local token-cache and selected-account records. It preserves the cache-encryption key and fails closed when configured custom storage or the OS credential store cannot be safely verified. This phase prepares the guarded operation; do not run it without an explicit reset confirmation. Phase 1.3.9 remains **Permission Activation Pending**.
 
 ## Phase 1 Review
 

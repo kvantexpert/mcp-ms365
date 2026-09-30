@@ -28,6 +28,7 @@ program
   .option('--diagnose-auth', 'Show safe OAuth cache and account diagnostics without calling Graph')
   .option('--clear-auth-cache', 'Preview local auth cache cleanup; cleanup is never performed')
   .option('--dry-run', 'Require preview-only behavior for auth cache cleanup')
+  .option('--confirm', 'Confirm clearing local OAuth token and selected-account cache records')
   .option(
     '--diagnose-permissions',
     'Compare approved Graph scopes with cached token scope metadata'
@@ -148,6 +149,7 @@ export interface CommandOptions {
   diagnoseAuth?: boolean;
   clearAuthCache?: boolean;
   dryRun?: boolean;
+  confirm?: boolean;
   diagnosePermissions?: boolean;
   listAccounts?: boolean;
   selectAccount?: string;

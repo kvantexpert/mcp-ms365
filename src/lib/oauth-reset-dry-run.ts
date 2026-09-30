@@ -31,8 +31,20 @@ export function buildAuthCacheResetPreview(input: AuthCacheResetPreviewInput) {
         fileExists: input.cacheKeyFileExists,
       },
     ],
-    keychainRecords: 'not inspected',
     actionsTaken: [],
+    graphApiCalls: 0,
+  };
+}
+
+export async function clearLocalAuthCacheRecords(
+  deleteRecord: (key: 'token-cache' | 'selected-account') => Promise<void>
+) {
+  await deleteRecord('token-cache');
+  await deleteRecord('selected-account');
+  return {
+    status: 'cleared' as const,
+    records: ['token-cache', 'selected-account'] as const,
+    cacheEncryptionKeyPreserved: true,
     graphApiCalls: 0,
   };
 }
