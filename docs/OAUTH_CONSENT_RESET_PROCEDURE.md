@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Prepare a clean permission activation after detecting broader scope metadata in the local MSAL cache. This document describes a future local cache cleanup; no cleanup or consent revocation is performed by this phase.
+Prepare a clean permission activation after detecting broader scope metadata in the local MSAL cache. The local token and selected-account cache cleanup described here was executed and is recorded in `docs/OAUTH_STATE_RESET_EXECUTION_RESULT.md`. Microsoft consent was not revoked.
 
 ## Current Problem
 
@@ -30,24 +30,24 @@ Do not delete or change:
 
 `--clear-auth-cache` without `--confirm` runs in preview-only mode. Add `--dry-run` to state that intent explicitly. Preview reports configured local file paths and existence plus known OS credential-store record counts; it never emits stored values. It does not migrate or delete records or contact Microsoft Graph. A custom cache command or unavailable OS credential store blocks confirmed cleanup because the backend cannot be safely verified.
 
-On the preparation run, the default token-cache, selected-account, and encryption-key files were absent at their configured paths. Keychain and custom command-backed records were not inspected, so this does not establish that no cached account or token exists in other configured storage.
+The successful user-context preflight found one token-cache file and one selected-account file, no matching cache records in the OS credential store, and one preserved cache-encryption-key credential. The sandboxed process had a restricted view of those locations; see the execution result for the authoritative before/after record.
 
 ## Before Reset
 
-Checkpoint commit: `545b4d0` (`feat: add permission cleanup analysis`).
+Pre-reset checkpoint commit: `545b4d0` (`feat: add permission cleanup analysis`).
 
 Checkpoint tag: `mail-assistant-before-oauth-consent-reset-v1`.
 
-The cleanup command requires the explicit `--confirm` flag to clear exactly the local token-cache and selected-account records. It preserves the cache-encryption key. `--confirm` cannot be combined with `--dry-run`. No confirmed reset has been run as part of this preparation.
+The cleanup command requires the explicit `--confirm` flag to clear exactly the local token-cache and selected-account records. It preserves the cache-encryption key. `--confirm` cannot be combined with `--dry-run`. The reset was completed and verified as described in `docs/OAUTH_STATE_RESET_EXECUTION_RESULT.md`.
 
 ## After Reset
 
-Only after a separately approved cleanup, the expected local state is:
+After the completed cleanup, the verified local state is:
 
 - no cached account selection;
 - no cached token entry.
 
-This expected state must be verified with safe local diagnostics. A local cache reset does not revoke prior remote consent, and a later login may still return permissions broader than the requested set.
+The state was verified with `--diagnose-auth` and a subsequent dry-run. A local cache reset does not revoke prior remote consent, and a later login may still return permissions broader than the requested set.
 
 ## Next Step
 

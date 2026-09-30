@@ -450,3 +450,17 @@ The next activation attempt must request only the reviewed scopes and verify the
 Status: **Completed**
 
 The Phase 1 architecture and implementation review is documented in `docs/MAIL_ASSISTANT_PHASE1_COMPLETE_REVIEW.md`. This review does not change the Phase 1.3.9 status: permission activation is still pending, and the project remains mock-only with no mailbox changes.
+
+# Project Sections
+
+## Section 1 — Mail Assistant Foundation
+
+Status: **Completed**
+
+The foundation includes MCP and Graph read integration, deterministic email classification, folder and action planning, dry-run, confirmation, mock execution, permission validation, OAuth diagnostics, and the verified local OAuth state reset. No live mailbox write has been performed. Phase 1.3.9.7 remains pending before any real write work.
+
+## Section 2 — Mail Organization Engine
+
+Status: **Ready after permission activation**
+
+The next planned work is the single-folder and single-message controlled scenario, followed by bounded organization proposals and later automation planning. Begin only after minimal permission activation is verified, the Graph write path has its own review/checkpoint, and the user confirms the specific action. See `docs/MAIL_ASSISTANT_PROJECT_STATE.md` and `docs/NEXT_AGENT_INSTRUCTIONS.md`.
