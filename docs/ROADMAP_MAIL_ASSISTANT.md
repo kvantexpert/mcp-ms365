@@ -443,7 +443,7 @@ The cache reset completed after the guarded pre-deletion inventory could inspect
 
 Status: **Pending**
 
-The next activation attempt must request only the reviewed scopes and verify the actual returned permissions. This status does not authorize starting device login or Microsoft consent.
+The activation attempt requested only the reviewed scopes and completed login plus Graph `/me` verification, but cached scope metadata included additional permissions and no verified `scp` claim was available. This status remains Pending. See `docs/PERMISSION_ACTIVATION_FINAL_RESULT.md`. Section 2 is not ready until permission validation succeeds.
 
 ## Phase 1 Review
 
@@ -455,12 +455,12 @@ The Phase 1 architecture and implementation review is documented in `docs/MAIL_A
 
 ## Section 1 — Mail Assistant Foundation
 
-Status: **Completed**
+Status: **Foundation completed; final permission activation pending**
 
-The foundation includes MCP and Graph read integration, deterministic email classification, folder and action planning, dry-run, confirmation, mock execution, permission validation, OAuth diagnostics, and the verified local OAuth state reset. No live mailbox write has been performed. Phase 1.3.9.7 remains pending before any real write work.
+The foundation includes MCP and Graph read integration, deterministic email classification, folder and action planning, dry-run, confirmation, mock execution, permission validation, OAuth diagnostics, and the verified local OAuth state reset. No live mailbox write has been performed. The final Section 1 activation gate remains pending because the latest validation reported extra cached scope metadata and could not verify granted scopes.
 
 ## Section 2 — Mail Organization Engine
 
-Status: **Ready after permission activation**
+Status: **Pending permission validation**
 
 The next planned work is the single-folder and single-message controlled scenario, followed by bounded organization proposals and later automation planning. Begin only after minimal permission activation is verified, the Graph write path has its own review/checkpoint, and the user confirms the specific action. See `docs/MAIL_ASSISTANT_PROJECT_STATE.md` and `docs/NEXT_AGENT_INSTRUCTIONS.md`.

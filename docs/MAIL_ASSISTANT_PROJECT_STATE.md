@@ -6,7 +6,7 @@ The project builds a safe MCP assistant for analyzing Outlook mail and preparing
 
 ## 2. Completed Section 1 — Mail Assistant Foundation
 
-**Status: Completed.** The read-only intelligence, planning, confirmation, mock execution, permission analysis, and OAuth recovery foundation is documented and implemented. No real mailbox write has been performed.
+**Status: Foundation completed; final permission activation pending.** The read-only intelligence, planning, confirmation, mock execution, permission analysis, and OAuth recovery foundation is documented and implemented. The fresh permission attempt completed authentication and Graph `/me` verification, but the scope metadata check found extra permissions and could not verify the granted `scp` claim. No real mailbox write has been performed.
 
 ### MCP Integration
 
@@ -72,17 +72,17 @@ The project builds a safe MCP assistant for analyzing Outlook mail and preparing
 
 ## 4. Current Security State
 
-- Permissions are **not currently confirmed for write**. The prior response included scopes beyond the intended set, and the local token cache was subsequently cleared.
-- Current local auth diagnostics report no cached account and no cached access tokens.
+- Permissions are **not currently confirmed for write**. The new login requested the minimal set, but cached scope metadata contains unrequested scopes; granted scopes could not be verified.
+- A fresh local account/token cache now exists after device login. `diagnose-auth` reports one account and cached scope target metadata; `diagnose-permissions` reports extra scopes and `grantVerified=false`.
 - `WRITE_EXECUTION_ENABLED` defaults to `false`.
 - `WRITE_ADAPTER_MODE` defaults to `mock`.
 - Mailbox state is unchanged.
 
 ## 5. Current Position
 
-**Section 1 — Mail Assistant Foundation: Completed.**
+**Section 1 — Mail Assistant Foundation: Implementation completed; final activation gate pending.**
 
-**Current gate: Phase 1.3.9.7 — Fresh Permission Activation, Pending.** The next session must establish and verify only:
+**Current gate: Phase 1.3.9.7 — Fresh Permission Activation, Pending.** The latest device login requested the three reviewed scopes, but cached metadata included extras. The next session must investigate and establish a verified minimal permission result before Section 2:
 
 - `Mail.ReadWrite`
 - `MailboxSettings.Read`
