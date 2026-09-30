@@ -1,7 +1,7 @@
 import type { AccountInfo, Configuration, ICachePlugin, TokenCacheContext } from '@azure/msal-node';
 import { AuthError, PublicClientApplication } from '@azure/msal-node';
 import logger from './logger.js';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { getSecrets, type AppSecrets } from './secrets.js';
@@ -22,6 +22,7 @@ import {
   unwrapCache,
   wrapCache,
 } from './token-cache-storage.js';
+import { buildAuthDiagnostic } from './lib/auth-diagnostic.js';
 
 interface EndpointConfig {
   pathPattern: string;
@@ -1133,7 +1134,37 @@ class AuthManager {
     // write: checking that *some* of it did would be satisfied by the very stale token
     // this exists to catch, since that one is already on disk.
     const issued = this.inMemoryRefreshTokens(account.homeAccountId);
-    if (issued.size === 0) return;
+    if (issued.size === 0) {
+      // Some MSAL versions/cache implementations do not expose getKVStore(). Do not
+      // interpret that as proof of persistence: compare the serialized storage before
+      // and after login and require a refresh token for this account to have landed.
+      let persisted: Set<string> | undefined;
+      try {
+        persisted = await this.readPersistedRefreshTokens(account.homeAccountId);
+      } catch (error) {
+        this.failLoginPersistence(
+          account,
+          `the auth cache could not be read back (${(error as Error).message}), so the sign-in cannot ` +
+            'be confirmed as saved. Fix the cache location, then log in again.'
+        );
+      }
+
+      const beforeSecrets =
+        before === undefined ? undefined : persistedRefreshTokens(before, account.homeAccountId);
+      const containsNewRefreshToken =
+        persisted !== undefined &&
+        [...persisted].some((secret) => beforeSecrets === undefined || !beforeSecrets.has(secret));
+
+      if (!containsNewRefreshToken) {
+        this.failLoginPersistence(
+          account,
+          'the sign-in did not add a refresh token to the persisted auth cache, so access would ' +
+            'stop working when this access token expires. Check the cache path, credential store, ' +
+            'client ID and tenant ID, then log in again.'
+        );
+      }
+      return;
+    }
 
     let persisted: Set<string> | undefined;
     try {
@@ -1485,6 +1516,40 @@ class AuthManager {
   // Multi-account support methods
   async listAccounts(): Promise<AccountInfo[]> {
     return await this.msalApp.getTokenCache().getAllAccounts();
+  }
+
+  /** Reports OAuth cache metadata only. Does not request tokens or call Microsoft Graph. */
+  async diagnoseAuth() {
+    let persistedCache: string | undefined;
+    let cacheReadable = false;
+    try {
+      persistedCache = await this.storage.load('token-cache');
+      cacheReadable = persistedCache !== undefined;
+    } catch {
+      // Keep the diagnostic useful if the credential store cannot be read.
+    }
+
+    const accounts = await this.listAccounts();
+    const serializedCache = this.msalApp.getTokenCache().serialize();
+    const secrets = await getSecrets();
+    const tenantId = this.config.auth.authority?.replace(/\/$/, '').split('/').at(-1) || 'unknown';
+
+    return buildAuthDiagnostic({
+      cacheLocation: getTokenCachePath(),
+      cacheFileExists: existsSync(getTokenCachePath()),
+      cacheReadable,
+      storage: this.storage.description,
+      clientId: secrets.clientId,
+      tenantId,
+      selectedAccountId: this.selectedAccountId,
+      accounts: accounts.map((account) => ({
+        homeAccountId: account.homeAccountId,
+        username: account.username,
+        name: account.name,
+      })),
+      serializedCache,
+      authenticationMode: this.isOAuthMode ? 'request-provided-oauth-token' : 'local-msal-cache',
+    });
   }
 
   async selectAccount(identifier: string): Promise<boolean> {

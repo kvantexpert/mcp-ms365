@@ -842,8 +842,16 @@ describe('a sign-in that did not reach the cache', () => {
     await expect(auth.acquireTokenByDeviceCode()).resolves.toBe('fresh-access-token');
   });
 
-  it('stays quiet when MSAL exposes no refresh token to check', async () => {
+  it('rejects a sign-in when no refresh token was persisted and MSAL exposes no token to check', async () => {
     const auth = createAuth(storageHolding([]), {});
+
+    await expect(auth.acquireTokenByDeviceCode()).rejects.toThrow(
+      /did not add a refresh token to the persisted auth cache/
+    );
+  });
+
+  it('checks persisted storage when MSAL does not expose refresh tokens in memory', async () => {
+    const auth = createAuth(storageReturning([[], ['RT-JUST-ISSUED']]), {});
 
     await expect(auth.acquireTokenByDeviceCode()).resolves.toBe('fresh-access-token');
   });

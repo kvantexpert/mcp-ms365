@@ -25,6 +25,7 @@ program
   .option('--login', 'Login to Microsoft account')
   .option('--logout', 'Log out and clear saved credentials')
   .option('--verify-login', 'Verify login without starting the server')
+  .option('--diagnose-auth', 'Show safe OAuth cache and account diagnostics without calling Graph')
   .option('--list-accounts', 'List all cached accounts')
   .option('--select-account <accountId>', 'Select a specific account by ID')
   .option('--remove-account <accountId>', 'Remove a specific account by ID')
@@ -138,6 +139,7 @@ export interface CommandOptions {
   login?: boolean;
   logout?: boolean;
   verifyLogin?: boolean;
+  diagnoseAuth?: boolean;
   listAccounts?: boolean;
   selectAccount?: string;
   removeAccount?: string;

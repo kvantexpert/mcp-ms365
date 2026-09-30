@@ -123,6 +123,12 @@ async function main(): Promise<void> {
       process.exit(0);
     }
 
+    if (args.diagnoseAuth) {
+      const result = await authManager.diagnoseAuth();
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(0);
+    }
+
     if (args.logout) {
       await authManager.logout();
       console.log(JSON.stringify({ message: 'Logged out successfully' }));
