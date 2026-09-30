@@ -359,6 +359,8 @@ describe('HTTP startup local storage selection', () => {
     expect(shouldUseLocalAuthStorage({ http: true, enableAuthTools: true })).toBe(true);
     expect(shouldUseLocalAuthStorage({ http: true, login: true })).toBe(true);
     expect(shouldUseLocalAuthStorage({ http: true, listAccounts: true })).toBe(true);
+    expect(shouldUseLocalAuthStorage({ http: true, diagnoseAuth: true })).toBe(true);
+    expect(shouldUseLocalAuthStorage({ http: true, diagnosePermissions: true })).toBe(true);
   });
 
   it('uses local storage for stdio/local auth flows', () => {

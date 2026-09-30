@@ -8,6 +8,8 @@ const LOCAL_ACCOUNT_COMMANDS = [
   'selectAccount',
   'removeAccount',
   'verifyLogin',
+  'diagnoseAuth',
+  'diagnosePermissions',
 ] as const;
 
 export function getExpectedAccountInertWarning(

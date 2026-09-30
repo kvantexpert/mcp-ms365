@@ -13,6 +13,10 @@ import {
 import { createTokenCacheStorage } from './token-cache-storage.js';
 import { dumpError, getActiveResources } from './crash-logging.js';
 import { version } from './version.js';
+import {
+  analyzePermissionScopes,
+  PERMISSION_CLEANUP_EXPECTED_SCOPES,
+} from './lib/permission-cleanup-analysis.js';
 
 // Global crash handlers. Without these, an unhandled rejection from a dependency
 // (MSAL HTTP, keytar native, fetch in node) kills the stdio process silently
@@ -125,6 +129,16 @@ async function main(): Promise<void> {
 
     if (args.diagnoseAuth) {
       const result = await authManager.diagnoseAuth();
+      console.log(JSON.stringify(result, null, 2));
+      process.exit(0);
+    }
+
+    if (args.diagnosePermissions) {
+      const authDiagnostics = await authManager.diagnoseAuth();
+      const result = analyzePermissionScopes(
+        PERMISSION_CLEANUP_EXPECTED_SCOPES,
+        authDiagnostics.cachedAccessTokens
+      );
       console.log(JSON.stringify(result, null, 2));
       process.exit(0);
     }

@@ -85,6 +85,12 @@ describe('CLI Module', () => {
       expect(parseArgs().diagnoseAuth).toBe(true);
     });
 
+    it('should parse --diagnose-permissions', () => {
+      commanderMocks.mockCommand.opts.mockReturnValue({ diagnosePermissions: true });
+
+      expect(parseArgs().diagnosePermissions).toBe(true);
+    });
+
     it('should expand --preset mail-readonly into mail tools and safe mode options', () => {
       const previousEnabledTools = process.env.ENABLED_TOOLS;
       const previousReadOnly = process.env.READ_ONLY;

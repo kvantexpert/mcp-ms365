@@ -26,6 +26,10 @@ program
   .option('--logout', 'Log out and clear saved credentials')
   .option('--verify-login', 'Verify login without starting the server')
   .option('--diagnose-auth', 'Show safe OAuth cache and account diagnostics without calling Graph')
+  .option(
+    '--diagnose-permissions',
+    'Compare approved Graph scopes with cached token scope metadata'
+  )
   .option('--list-accounts', 'List all cached accounts')
   .option('--select-account <accountId>', 'Select a specific account by ID')
   .option('--remove-account <accountId>', 'Remove a specific account by ID')
@@ -140,6 +144,7 @@ export interface CommandOptions {
   logout?: boolean;
   verifyLogin?: boolean;
   diagnoseAuth?: boolean;
+  diagnosePermissions?: boolean;
   listAccounts?: boolean;
   selectAccount?: string;
   removeAccount?: string;

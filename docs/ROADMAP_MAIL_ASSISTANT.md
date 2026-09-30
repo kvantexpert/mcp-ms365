@@ -415,6 +415,12 @@ Status: **Permission Activation Pending**
 
 The proposed first test remains limited to creating `MCP-Test` and moving one explicitly selected message. It requires separately approved permission activation, a new checkpoint, and the Graph write adapter implementation. No write action is enabled by this roadmap update.
 
+## Phase 1.3.9.3 — Permission Cleanup Preparation
+
+Status: **Implementation**
+
+Add local diagnostics that compare the minimal expected mail scopes with scope metadata from the existing token cache. Report whether scopes came from a decoded access-token `scp` claim or only from MSAL cache request metadata. This phase does not revoke consent, change app registration or scopes, start login, or modify the mailbox. Phase 1.3.9 remains **Permission Activation Pending**.
+
 ## Phase 1 Review
 
 Status: **Completed**
