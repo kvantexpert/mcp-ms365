@@ -445,6 +445,12 @@ Status: **Pending**
 
 The activation attempt requested only the reviewed scopes and completed login plus Graph `/me` verification, but cached scope metadata included additional permissions and no verified `scp` claim was available. This status remains Pending. See `docs/PERMISSION_ACTIVATION_FINAL_RESULT.md`. Section 2 is not ready until permission validation succeeds.
 
+## Phase 1.3.9.8 — External Permission Source Audit
+
+Status: **Implementation**
+
+Add `--audit-permission-source` to report the effective client, tenant, preset-derived scopes, requested scopes, safe environment-override status, cache location, and local scope-construction path without exposing secrets or calling Microsoft Graph. The audit rules out the selected preset and known local scope overrides as sources of the broad cache metadata; the remote application/consent source remains unidentified. Phase 1.3.9.7 stays **Permission Activation Pending**.
+
 ## Phase 1 Review
 
 Status: **Completed**

@@ -4,6 +4,9 @@ import { loadEnvFile } from './load-env.js';
 import { parseArgs } from './cli.js';
 import logger from './logger.js';
 import AuthManager, { buildAllowedScopeDiagnostics, resolveAuthScopes } from './auth.js';
+import { getSecrets } from './secrets.js';
+import { getCloudEndpoints } from './cloud-config.js';
+import { buildPermissionSourceAudit } from './lib/permission-source-audit.js';
 import MicrosoftGraphServer from './server.js';
 import {
   getExpectedAccountInertWarning,
@@ -71,6 +74,30 @@ async function main(): Promise<void> {
     if (args.confirm && !args.clearAuthCache) {
       console.error('--confirm is only valid with --clear-auth-cache.');
       process.exit(1);
+    }
+
+    if (args.auditPermissionSource) {
+      const secrets = await getSecrets();
+      const presetDiagnostics = buildAllowedScopeDiagnostics({
+        ...args,
+        allowedScopes: undefined,
+      });
+      const authority = getCloudEndpoints(secrets.cloudType).authority;
+      const audit = buildPermissionSourceAudit({
+        clientId: secrets.clientId,
+        tenant: secrets.tenantId,
+        cloudType: secrets.cloudType,
+        cacheLocation: getTokenCachePath(),
+        requestedScopes: effectiveScopes,
+        presetScopes: presetDiagnostics.toolPermissions,
+        args,
+        env: process.env,
+        argv: process.argv.slice(2),
+      });
+      console.log(
+        JSON.stringify({ ...audit, authority: `${authority}/${secrets.tenantId}` }, null, 2)
+      );
+      process.exit(0);
     }
 
     if (args.listPermissions) {

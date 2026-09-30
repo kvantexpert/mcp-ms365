@@ -85,6 +85,12 @@ describe('CLI Module', () => {
       expect(parseArgs().diagnoseAuth).toBe(true);
     });
 
+    it('should parse --audit-permission-source', () => {
+      commanderMocks.mockCommand.opts.mockReturnValue({ auditPermissionSource: true });
+
+      expect(parseArgs().auditPermissionSource).toBe(true);
+    });
+
     it('should parse --clear-auth-cache --dry-run', () => {
       commanderMocks.mockCommand.opts.mockReturnValue({ clearAuthCache: true, dryRun: true });
 
