@@ -26,6 +26,8 @@ program
   .option('--logout', 'Log out and clear saved credentials')
   .option('--verify-login', 'Verify login without starting the server')
   .option('--diagnose-auth', 'Show safe OAuth cache and account diagnostics without calling Graph')
+  .option('--clear-auth-cache', 'Preview local auth cache cleanup; cleanup is never performed')
+  .option('--dry-run', 'Require preview-only behavior for auth cache cleanup')
   .option(
     '--diagnose-permissions',
     'Compare approved Graph scopes with cached token scope metadata'
@@ -144,6 +146,8 @@ export interface CommandOptions {
   logout?: boolean;
   verifyLogin?: boolean;
   diagnoseAuth?: boolean;
+  clearAuthCache?: boolean;
+  dryRun?: boolean;
   diagnosePermissions?: boolean;
   listAccounts?: boolean;
   selectAccount?: string;

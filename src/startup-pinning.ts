@@ -10,6 +10,7 @@ const LOCAL_ACCOUNT_COMMANDS = [
   'verifyLogin',
   'diagnoseAuth',
   'diagnosePermissions',
+  'clearAuthCache',
 ] as const;
 
 export function getExpectedAccountInertWarning(

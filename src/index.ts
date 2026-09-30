@@ -13,6 +13,13 @@ import {
 import { createTokenCacheStorage } from './token-cache-storage.js';
 import { dumpError, getActiveResources } from './crash-logging.js';
 import { version } from './version.js';
+import { existsSync } from 'node:fs';
+import {
+  getCacheKeyPath,
+  getSelectedAccountPath,
+  getTokenCachePath,
+} from './token-cache-storage.js';
+import { buildAuthCacheResetPreview } from './lib/oauth-reset-dry-run.js';
 import {
   analyzePermissionScopes,
   PERMISSION_CLEANUP_EXPECTED_SCOPES,
@@ -73,6 +80,38 @@ async function main(): Promise<void> {
             filter,
             ...diagnostics,
           },
+          null,
+          2
+        )
+      );
+      process.exit(0);
+    }
+
+    if (args.clearAuthCache) {
+      if (!args.dryRun) {
+        console.error(
+          JSON.stringify({
+            status: 'blocked',
+            reason: '--clear-auth-cache is preview-only and requires --dry-run',
+            actionsTaken: [],
+          })
+        );
+        process.exit(1);
+      }
+
+      const tokenCachePath = getTokenCachePath();
+      const selectedAccountPath = getSelectedAccountPath();
+      const cacheKeyPath = getCacheKeyPath();
+      console.log(
+        JSON.stringify(
+          buildAuthCacheResetPreview({
+            tokenCachePath,
+            tokenCacheFileExists: existsSync(tokenCachePath),
+            selectedAccountPath,
+            selectedAccountFileExists: existsSync(selectedAccountPath),
+            cacheKeyPath,
+            cacheKeyFileExists: existsSync(cacheKeyPath),
+          }),
           null,
           2
         )

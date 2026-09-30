@@ -421,6 +421,12 @@ Status: **Implementation**
 
 Add local diagnostics that compare the minimal expected mail scopes with scope metadata from the existing token cache. Report whether scopes came from a decoded access-token `scp` claim or only from MSAL cache request metadata. This phase does not revoke consent, change app registration or scopes, start login, or modify the mailbox. Phase 1.3.9 remains **Permission Activation Pending**.
 
+## Phase 1.3.9.4 — Consent Reset + Clean Activation Preparation
+
+Status: **Preparation**
+
+Document a safe local token/account cache reset procedure and provide `--clear-auth-cache --dry-run` to preview cache file paths and existence only. The preview performs no deletion, keychain inspection, consent revocation, login, permission change, or Graph call. Phase 1.3.9 remains **Permission Activation Pending**.
+
 ## Phase 1 Review
 
 Status: **Completed**
