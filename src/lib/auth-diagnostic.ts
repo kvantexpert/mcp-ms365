@@ -1,3 +1,5 @@
+import { getGrantedPermissionsFromAccessToken } from './write-permission-validation.js';
+
 export interface AuthDiagnosticInput {
   cacheLocation: string;
   cacheFileExists: boolean;
@@ -20,6 +22,8 @@ interface CachedAccessToken {
   home_account_id?: unknown;
   target?: unknown;
   expiresOn?: unknown;
+  expires_on?: unknown;
+  secret?: unknown;
 }
 
 interface SerializedMsalCache {
@@ -46,12 +50,21 @@ export function buildAuthDiagnostic(input: AuthDiagnosticInput) {
 
   const accessTokens = Object.values(cache.AccessToken ?? {}).flatMap((entry) => {
     if (typeof entry !== 'object' || entry === null) return [];
-    const expirySeconds = Number(entry.expiresOn);
-    const expiresAt = Number.isFinite(expirySeconds) ? new Date(expirySeconds * 1000) : null;
-    const scopes =
+    const rawExpiry = entry.expiresOn ?? entry.expires_on;
+    const expiryNumber = typeof rawExpiry === 'number' ? rawExpiry : Number(rawExpiry);
+    const expiryMilliseconds =
+      Number.isFinite(expiryNumber) && expiryNumber > 0
+        ? expiryNumber * 1000
+        : typeof rawExpiry === 'string'
+          ? Date.parse(rawExpiry)
+          : Number.NaN;
+    const expiresAt = Number.isFinite(expiryMilliseconds) ? new Date(expiryMilliseconds) : null;
+    const requestedScopes =
       typeof entry.target === 'string'
         ? [...new Set(entry.target.split(/\s+/).filter((scope) => SCOPE_NAME.test(scope)))].sort()
         : [];
+    const grantedScopes =
+      typeof entry.secret === 'string' ? getGrantedPermissionsFromAccessToken(entry.secret) : [];
     const account = input.accounts.find((item) => item.homeAccountId === entry.home_account_id);
 
     return [
@@ -60,7 +73,8 @@ export function buildAuthDiagnostic(input: AuthDiagnosticInput) {
         expiresAt:
           expiresAt && Number.isFinite(expiresAt.getTime()) ? expiresAt.toISOString() : null,
         expired: expiresAt ? expiresAt.getTime() <= now : null,
-        scopes,
+        requestedScopes,
+        grantedScopes: grantedScopes.length > 0 ? grantedScopes : null,
       },
     ];
   });

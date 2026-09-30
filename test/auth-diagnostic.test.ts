@@ -33,7 +33,7 @@ describe('OAuth auth diagnostics', () => {
         entry: {
           home_account_id: 'account-id',
           target: 'Mail.ReadWrite User.Read',
-          expiresOn: String(Date.parse('2030-01-01T00:00:00.000Z') / 1000),
+          expiresOn: '2030-01-01 00:00:00.000 UTC',
           secret: 'ACCESS_TOKEN_SECRET_SENTINEL',
         },
       },
@@ -49,11 +49,42 @@ describe('OAuth auth diagnostics', () => {
     expect(report.status).toBe('account-found');
     expect(report.cachedAccessTokens[0]).toMatchObject({
       account: 'person@example.test',
-      scopes: ['Mail.ReadWrite', 'User.Read'],
+      requestedScopes: ['Mail.ReadWrite', 'User.Read'],
+      grantedScopes: null,
       expired: false,
     });
     expect(JSON.stringify(report)).not.toContain('ACCESS_TOKEN_SECRET_SENTINEL');
     expect(JSON.stringify(report)).not.toContain('REFRESH_TOKEN_SECRET_SENTINEL');
+  });
+
+  it('extracts only actual granted scopes from a cached JWT without returning the JWT', () => {
+    const accessToken = [
+      'header',
+      Buffer.from(
+        JSON.stringify({ scp: 'Mail.ReadWrite MailboxSettings.Read User.Read Calendars.ReadWrite' })
+      ).toString('base64url'),
+      'signature',
+    ].join('.');
+    const report = buildAuthDiagnostic({
+      ...input(
+        JSON.stringify({
+          AccessToken: {
+            entry: {
+              target: 'Mail.ReadWrite MailboxSettings.Read User.Read',
+              secret: accessToken,
+            },
+          },
+        })
+      ),
+    });
+
+    expect(report.cachedAccessTokens[0].grantedScopes).toEqual([
+      'Mail.ReadWrite',
+      'MailboxSettings.Read',
+      'User.Read',
+      'Calendars.ReadWrite',
+    ]);
+    expect(JSON.stringify(report)).not.toContain(accessToken);
   });
 
   it('returns a diagnostic report without any Graph write capability', () => {

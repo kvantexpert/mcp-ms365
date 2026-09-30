@@ -16,7 +16,7 @@ The controlled mail permission transition expects:
 - `MailboxSettings.Read`
 - `User.Read`
 
-The diagnostic reports scopes attached to cached access-token metadata, if present. It does not request consent and does not prove scopes that are only represented by refresh tokens.
+The diagnostic separates requested scopes (`target`) from granted scopes (`scp` decoded locally from a cached access-token JWT), if present. It never prints the JWT. It does not request consent and cannot report scopes represented only by refresh tokens.
 
 ## Checks
 
@@ -31,7 +31,7 @@ The output includes:
 - configured client ID and tenant ID, to compare with the sign-in application;
 - token-cache path, backend description, file presence and readability;
 - cached account identities and selected account;
-- cached access-token expiry and scope metadata, when available.
+- cached access-token expiry, requested scopes and actual granted scopes, when available.
 
 The report never includes access tokens, refresh tokens, client secrets or serialized cache contents. `--diagnose-auth` reads local MSAL state only and does not call Microsoft Graph. `--verify-login` separately checks Graph `/me` using an existing token.
 
