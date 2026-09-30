@@ -47,7 +47,7 @@ export const CLOUD_ENDPOINTS: Record<CloudType, CloudEndpoints> = {
  * These are pre-registered public client applications.
  */
 export const DEFAULT_CLIENT_IDS: Record<CloudType, string> = {
-  global: '084a3e9f-a9f4-43f7-89f9-d229cf97853e',
+  global: '657cea31-052c-4e27-b97e-43a146ea72f0',
   china: 'f3e61a6e-bc26-4281-8588-2c7359a02141',
 };
 
