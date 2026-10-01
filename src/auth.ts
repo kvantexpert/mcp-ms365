@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { getSecrets, type AppSecrets } from './secrets.js';
-import { getCloudEndpoints, getDefaultClientId } from './cloud-config.js';
+import { getCloudEndpoints } from './cloud-config.js';
 import {
   dedupeRefreshTokens,
   type CanonicalKeyFor,
@@ -56,7 +56,7 @@ function createMsalConfig(secrets: AppSecrets): Configuration {
   const cloudEndpoints = getCloudEndpoints(secrets.cloudType);
   return {
     auth: {
-      clientId: secrets.clientId || getDefaultClientId(secrets.cloudType),
+      clientId: secrets.clientId,
       authority: `${cloudEndpoints.authority}/${secrets.tenantId || 'common'}`,
     },
   };
