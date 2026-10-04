@@ -1,130 +1,107 @@
 # Mail Assistant Project State
 
-## 1. Project Overview
+## Current checkpoint
 
-The project builds a safe MCP assistant for analyzing Outlook mail and preparing controlled organization workflows. It uses the existing `mcp-ms365` server and Microsoft Graph. Mailbox changes require a separate, bounded, explicitly confirmed execution stage.
+mcp-ms365-codex-mail-readonly-v1
 
-## 2. Completed Section 1 — Mail Assistant Foundation
+The checkpoint name is historical. Codex is not a required component of the current architecture.
 
-**Status: Foundation completed; final permission activation pending.** The read-only intelligence, planning, confirmation, mock execution, permission analysis, and OAuth recovery foundation is documented and implemented. The fresh permission attempt completed authentication and Graph `/me` verification, but the scope metadata check found extra permissions and could not verify the granted `scp` claim. No real mailbox write has been performed.
+## Product
 
-### MCP Integration
+QUANT EXPERT Mail Assistant
 
-- The MCP server is integrated with Codex.
-- Microsoft Graph mail read access was verified earlier with the `mail-readonly` preset.
-- The read-only foundation does not modify the mailbox.
+## Microsoft identity
 
-### Mail Understanding
+- Client ID: 657cea31-052c-4e27-b97e-43a146ea72f0
+- Account: quantexpert@outlook.com
+- Tenant: consumers
 
-- Local deterministic email classification is implemented.
-- Categories include Clients, Projects, Finance, Documents, Security, Automation, and Personal.
-- Message analysis uses sender, subject, preview, and available metadata.
+## MCP runtime
 
-### Organization Planning
+- Endpoint: https://mcp-ms365.kvantexpert.ru/mcp
+- Transport: Streamable HTTP
+- Preset: mail
+- Access: READ ONLY
 
-- Folder structure is designed.
-- The action planner creates recommendations.
-- Dry-run previews proposed organization actions without changing Outlook.
+## Expected Graph scopes
 
-### Safety Layer
+- Mail.Read
+- MailboxSettings.Read
+- User.Read
 
-- Confirmation requests support pending, approved, rejected, and expired states.
-- Approval changes proposal state only; it does not itself execute a mailbox operation.
-- Local audit foundations exist.
+## Completed
 
-### Controlled Execution
+- MCP server deployed and operational.
+- HTTPS endpoint and Streamable HTTP verified.
+- Microsoft Graph mail read access verified.
+- Own QUANT EXPERT Microsoft application created and used successfully.
+- Server-side device-code login completed.
+- Client ID fallback removed; MS365_MCP_CLIENT_ID is mandatory.
+- Legacy Softeria identity removed from active repository.
+- Historical Client ID 084a3e9f-a9f4-43f7-89f9-d229cf97853e is forbidden.
+- Repository branding and deployment references cleaned.
+- GitHub SSH push from server verified.
+- Current cleanup commit: adb51ce.
 
-- The execution engine validates confirmation and an operation allowlist.
-- A feature flag gates execution and defaults off.
-- The adapter defaults to mock mode; the controlled write preparation does not enable Graph writes.
+## Architecture clarification
 
-### Permission Security
+The following are separate concepts:
 
-- Permission review and fail-closed write permission validation are documented and implemented.
-- OAuth diagnostics distinguish requested scope metadata from a verified token `scp` claim.
-- The local token and selected-account cache reset completed; the cache encryption key was preserved.
+1. Application Registry;
+2. Permission Catalog;
+3. Preset Registry;
+4. Requested OAuth scopes;
+5. Granted token scopes;
+6. OAuth authorization server;
+7. MCP resource server;
+8. Microsoft Graph.
 
-## 3. Problems Found and Fixes
+A catalog entry is not evidence of a granted permission.
 
-### Problem 1 — Read and write capabilities needed isolation
+## Not enabled
 
-**Fix:** Prepared a separate `mail-write-controlled` mode with a narrow allowlist. Real execution remains gated; `mail-readonly` remains distinct.
+- Mail.ReadWrite;
+- Mail.Send;
+- mailbox writes;
+- folder creation;
+- message movement;
+- deletion;
+- mailbox rules;
+- bulk organization;
+- automation.
 
-### Problem 2 — Actions had no explicit approval state
+## Next gate
 
-**Fix:** Added a confirmation layer for approve and reject decisions. Approval does not invoke an executor.
+First E2E read-only request through MCP Inspector:
 
-### Problem 3 — Accidental Graph write risk
+Покажи последние письма
 
-**Fix:** Added a mock adapter, allowlist, feature flag, permission validation, and dry-run/preflight checks. No Graph write API has been called.
+Acceptance:
 
-### Problem 4 — Login could appear successful without a reusable persisted token
+MCP Inspector
+→ HTTPS /mcp
+→ MCP OAuth/session
+→ QUANT EXPERT application
+→ quantexpert@outlook.com
+→ mcp-ms365
+→ Microsoft Graph
+→ mailbox data
 
-**Fix:** Tightened token persistence validation and added OAuth cache/account diagnostics. A fresh token session still needs to be established and validated after the cache reset.
+No write operation is part of this test.
 
-### Problem 5 — Broad scope metadata in the local cache
+## Project relationship
 
-**Fix:** Added permission-scope diagnostics and executed a local OAuth state reset. The reset removed only token and selected-account cache records and preserved the encryption key.
+mcp-ms365 is the Microsoft 365 data-plane integration of the larger QUANT EXPERT AI Platform.
 
-### Problem 6 — MSAL reported permissions outside the requested set
+project-control is the central project/control-plane repository.
 
-**Fix:** Added permission cleanup analysis and rejected that activation as unverified. The local reset does not revoke Microsoft consent or change the remote app registration, so a future consent result must still be inspected and may again contain extra permissions.
+Technical implementation stays in mcp-ms365. Architecture, status, roadmap and cross-project planning are mirrored in project-control.
 
-## 4. Current Security State
+## Rules
 
-- Permissions are **not currently confirmed for write**. The new login requested the minimal set, but cached scope metadata contains unrequested scopes; granted scopes could not be verified.
-- A fresh local account/token cache now exists after device login. `diagnose-auth` reports one account and cached scope target metadata; `diagnose-permissions` reports extra scopes and `grantVerified=false`.
-- `WRITE_EXECUTION_ENABLED` defaults to `false`.
-- `WRITE_ADAPTER_MODE` defaults to `mock`.
-- Mailbox state is unchanged.
-
-## 5. Current Position
-
-**Section 1 — Mail Assistant Foundation: Implementation completed; final activation gate pending.**
-
-**Current gate: Phase 1.3.9.7 — Fresh Permission Activation, Pending.** The latest device login requested the three reviewed scopes, but cached metadata included extras. The next session must investigate and establish a verified minimal permission result before Section 2:
-
-- `Mail.ReadWrite`
-- `MailboxSettings.Read`
-- `User.Read`
-
-No new OAuth login or consent was run during this documentation checkpoint. Do not infer current permissions from preset requirements or old cache metadata.
-
-## 6. Section 2 Plan — Mail Organization Engine
-
-Section 2 is **ready after permission activation and write-path validation**. The phases below describe future work; they do not authorize execution in the current checkpoint.
-
-### 2.1 First Controlled Write
-
-Create the `MCP-Test` folder only after the fresh permission result is verified, the Graph write adapter is implemented and reviewed, a new checkpoint exists, and the user explicitly approves the operation.
-
-### 2.2 First Message Move
-
-Move one specifically selected message from `Inbox` to `MCP-Test`. Verify the result and record an audit entry. Do not combine folder creation and message movement into an unreviewed batch.
-
-### 2.3 Organization Engine
-
-After the one-message scenario is reviewed, plan bounded organization capabilities by:
-
-- topic;
-- sender;
-- project;
-- document type.
-
-Begin with proposals and previews. Do not enable bulk execution by default.
-
-### 2.4 Automation
-
-Design rules as proposals first. Any later execution requires explicit confirmation, validation, audit, a permission review, and a separate checkpoint.
-
-## 7. Rules for Section 2
-
-1. Begin with one folder.
-2. Limit the first message operation to one selected email.
-3. Route every write through **Preview → Confirmation → Validation → Audit**.
-4. Stop if returned permissions exceed the reviewed minimal set.
-5. Keep write execution disabled and the adapter in mock mode until a separately approved implementation stage.
-
-## 8. Checkpoint
-
-The Section 1 completion tag `mail-assistant-section1-complete-v1` records the commit containing this project-state documentation and roadmap update. The earlier rollback tag `mail-assistant-before-oauth-consent-reset-v1` remains the pre-reset code checkpoint.
+- Do not restore Softeria.
+- Do not restore default Client ID fallback.
+- Do not enable write functions.
+- Do not expand permissions.
+- Do not revisit closed stages without a concrete regression.
+- Keep the next action limited to the first read-only E2E test.
