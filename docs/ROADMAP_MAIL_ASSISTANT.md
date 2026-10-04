@@ -1,147 +1,175 @@
 # Microsoft 365 AI Assistant Roadmap
 
-## Current Stable Version
-
-Checkpoint:
+## Current Checkpoint
 
 mcp-ms365-codex-mail-readonly-v1
 
-Status:
+The checkpoint name is historical. Codex is not part of the current connection architecture.
 
-- MCP server operational
-- Codex MCP integration completed
-- Microsoft Graph connection verified
-- Mail readonly mode verified
-- Git checkpoint created
+## Current Position
 
-## Current Permissions
+**Stage: Read-only Mail MCP verified. Next: first E2E mail read through MCP Inspector.**
 
-Allowed:
+The current deployment is:
+
+- Application: QUANT EXPERT Mail Assistant
+- Client ID: 657cea31-052c-4e27-b97e-43a146ea72f0
+- Microsoft account: quantexpert@outlook.com
+- Tenant: consumers
+- MCP endpoint: https://mcp-ms365.kvantexpert.ru/mcp
+- Transport: Streamable HTTP
+- Preset: mail
+- Access: READ ONLY
+
+Expected effective Graph scopes:
 
 - Mail.Read
 - MailboxSettings.Read
 - User.Read
 
-Mode:
+## What Was Completed
 
-READ ONLY
+### 1. MCP and Graph foundation
 
-Restrictions:
+- MCP server deployed and operational.
+- HTTPS endpoint configured through Nginx.
+- Streamable HTTP endpoint verified.
+- Microsoft Graph mail read access verified.
+- Read-only mail profile established.
 
-- no sending mail
-- no deleting mail
-- no modifying mailbox
-- no write operations without separate approval
+### 2. Own Microsoft application identity
 
-# Project Goal
+Application:
 
-Create a Microsoft 365 AI assistant capable of:
+QUANT EXPERT Mail Assistant
 
-- understanding mailbox content
-- organizing email information
-- helping manage incoming communication
-- creating structured email workflows
+Client ID:
 
-# Development Roadmap
+657cea31-052c-4e27-b97e-43a146ea72f0
 
-## Phase 1 — Mail Assistant
+Account:
 
-Goal:
+quantexpert@outlook.com
 
-Transform basic email MCP access into an intelligent mail assistant.
+The server-side device-code login succeeded and Microsoft consent was shown for mail read, mailbox settings read and profile read.
 
-Functions:
+### 3. Client ID hardening
 
-### Email Analysis
+The previous implementation could fall back to a built-in public Client ID when MS365_MCP_CLIENT_ID was absent.
 
-Capabilities:
+This is no longer allowed.
 
-- summarize incoming emails
-- identify important emails
-- identify emails requiring response
-- analyze communication history
+The current implementation requires:
 
-### Email Classification
+MS365_MCP_CLIENT_ID
 
-Classification by:
+If it is absent, startup fails instead of silently selecting a default application identity.
 
-Topics:
+### 4. Legacy identity cleanup
 
-- clients
-- projects
-- finance
-- documents
-- security
-- automation
-- personal
+The old Softeria identity and historical Client ID:
 
-Senders:
+084a3e9f-a9f4-43f7-89f9-d229cf97853e
 
-- group emails by sender
-- track communication frequency
-- identify important contacts
+are forbidden for the QUANT EXPERT deployment.
 
-Content:
+Legacy Softeria references were removed from the active repository.
 
-Analyze:
+Cleanup checkpoint:
 
-- keywords
-- project references
-- urgency
-- business context
+adb51ce — chore: remove legacy Softeria references
 
-# Phase 1.1 — Email Classification Foundation
+### 5. Permission model clarification
 
-## Goal
+The project now explicitly separates:
 
-Создать первый безопасный слой Mail Assistant для анализа писем без изменения mailbox.
+Application Client ID
+Permission Catalog
+Preset
+Requested OAuth scopes
+Granted token scopes
 
-Принцип:
+A permission appearing in a catalog is not proof that Microsoft granted it to the current token.
 
-READ ONLY ONLY
+### 6. OAuth discovery
 
-На этом этапе агент только анализирует письма и создаёт классификацию.
+The public MCP server exposes protected-resource and authorization-server metadata.
 
-## Development Branch
+Current advertised scopes:
 
-Перед реализацией создать отдельную ветку:
+- Mail.Read
+- MailboxSettings.Read
+- User.Read
 
-`feature/mail-assistant`
+The MCP resource is:
 
-Ветка должна создаваться от стабильного состояния:
+https://mcp-ms365.kvantexpert.ru/mcp
 
-`mcp-ms365-codex-mail-readonly-v1`
+## What Was NOT Done
 
-Цель:
+The following remain outside the current checkpoint:
 
-- не нарушить рабочий MCP;
-- сохранить стабильную версию;
-- вести разработку Mail Assistant отдельно.
+- Mail.ReadWrite activation
+- Mail.Send
+- real mailbox writes
+- creating mailbox folders
+- moving messages
+- deleting messages
+- mailbox rules
+- bulk organization
+- automatic automation
+- Calendar write
+- Files write
+- Teams write
 
-## Phase 1.1 Functionality
+No write operation should be enabled by this roadmap update.
 
-Первая реализуемая функция:
+## Stage 3 — First E2E Mail Read
 
-Email Classification
+**Status: NEXT**
 
-Входные данные — Microsoft Graph mailbox data:
+Run the first complete path:
 
-- `subject`
-- `sender`
-- `receivedDateTime`
-- `bodyPreview`
-- message metadata
+MCP Inspector
+→ HTTPS /mcp
+→ MCP OAuth
+→ QUANT EXPERT Microsoft application
+→ quantexpert@outlook.com
+→ OAuth token
+→ mcp-ms365
+→ Microsoft Graph
+→ mailbox read
 
-Источники MCP:
+Test request:
 
-- `list-mail-messages`
-- `get-mail-message`
+Покажи последние письма
 
-## Classification Logic
+Acceptance criteria:
 
-### Topic Classification
+1. MCP Inspector connects to the public /mcp endpoint.
+2. OAuth session uses the QUANT EXPERT application.
+3. Microsoft account is quantexpert@outlook.com.
+4. MCP tool call succeeds.
+5. Mail data is returned through Microsoft Graph.
+6. No write operation occurs.
+7. Result is recorded as an E2E checkpoint.
 
-Категории:
+## Stage 4 — Mail Intelligence
+
+After successful Stage 3:
+
+- email classification;
+- topic classification;
+- sender analysis;
+- urgency detection;
+- project/business context;
+- action recommendations.
+
+This stage remains read-only.
+
+## Stage 5 — Folder Structure Design
+
+Design the logical mailbox structure:
 
 - Clients
 - Projects
@@ -150,323 +178,84 @@ Email Classification
 - Security
 - Automation
 - Personal
+- Archive
 
-### Sender Classification
+No mailbox folders are created during design.
 
-Определять:
+## Stage 6 — Controlled Write Preparation
 
-- отправителя;
-- организацию;
-- частоту коммуникации;
-- важность контакта.
+Blocked until a separate permission review and checkpoint.
 
-### Content Classification
+The future first scenario is intentionally tiny:
 
-Анализ:
+1. create MCP-Test;
+2. select one explicitly identified message;
+3. move that one message;
+4. verify;
+5. audit.
 
-- ключевые слова;
-- тему письма;
-- проект;
-- срочность;
-- наличие действий.
+This is planning only until separately approved.
 
-## Output Format
-
-На первом этапе результат только аналитический.
-
-Пример:
-
-```text
-Email:
-Invoice September
-
-Classification:
-Category: Finance
-
-Reason:
-- contains invoice keywords
-- sender matches supplier pattern
-
-Suggested destination:
-Finance/Invoices
-```
-
-Это только рекомендация. Никаких изменений mailbox.
-
-## Restrictions
-
-Phase 1.1 НЕ включает:
-
-- создание папок;
-- перемещение писем;
-- создание правил;
-- отправку писем;
-- изменение mailbox.
-
-Write-функции будут отдельным этапом.
-
-## Next Steps After Phase 1.1
-
-После успешной классификации:
-
-- **Phase 1.2:** Folder Structure Design
-- **Phase 1.3:** Controlled Mail Organization
-- **Phase 1.4:** Automation Rules
-
-Каждый этап требует отдельной проверки, документации и checkpoint.
-
-# Email Organization
-
-## Folder Structure Management
-
-Future capability:
-
-Create mailbox structure for organized storage.
-
-Example:
-
-Inbox
-
-Clients
-
-Projects
-
-Finance
-
-Documents
-
-Automation
-
-Archive
-
-Capabilities:
-
-- create folders
-- create subfolders
-- maintain mailbox structure
-
-# Email Sorting System
-
-Future capability:
-
-Automatically classify emails:
-
-Example:
-
-Invoice email:
-
-Category:
-
-Finance
-
-Destination:
-
-Finance/Invoices
-
-Reason:
-
-Contains financial keywords and sender matches supplier profile.
-
-# Mail Rules Automation
-
-Future capability:
-
-Create rules:
-
-Examples:
-
-Client emails:
-
-Client → Client folder
-
-Invoices:
-
-Finance → Invoices folder
-
-Service notifications:
-
-Automation folder
-
-# Phase 2 — Controlled Write Mode
-
-After Mail Assistant validation:
-
-Enable carefully:
-
-- create folders
-- move messages
-- create mailbox rules
+## Stage 7 — Controlled Write
 
 Requires:
 
-- new checkpoint
-- new permissions review
+- separate permission review;
+- explicit Microsoft consent;
+- real Graph adapter review;
+- execution flag review;
+- confirmation;
+- audit;
+- new checkpoint.
 
-# Phase 3 — Calendar Assistant
+No automatic transition from read-only is allowed.
 
-Functions:
+## Stage 8 — Automation
 
-- calendar reading
-- daily planning
-- meeting analysis
+Only after controlled write validation:
 
-# Phase 4 — Files Assistant
+- rule proposals;
+- previews;
+- confirmation;
+- bounded execution;
+- audit.
 
-Functions:
+## Stage 9 — Other Assistants
 
-- OneDrive
-- SharePoint
-- document search
-- document organization
+After Mail Assistant stabilization:
 
-# Phase 5 — Teams Assistant
+- Calendar Assistant;
+- Files Assistant;
+- Teams Assistant;
+- Tender/Procurement Assistant;
+- Accountant Assistant.
 
-Functions:
+Every assistant gets its own application identity, permission review, preset and checkpoint.
 
-- Teams message analysis
-- conversation summaries
-- collaboration support
-
-# Project Rules
+## Project Rules
 
 Always:
 
-- create checkpoint before major changes
-- document changes
-- keep permissions minimal
-- separate read and write capabilities
+1. plan;
+2. implement;
+3. test;
+4. document;
+5. checkpoint;
+6. continue.
 
 Never:
 
-- expand permissions without approval
-- enable write operations automatically
-- perform unrelated refactoring
-- change architecture without plan
+- restore the old Softeria identity;
+- restore default Client ID fallback;
+- infer granted scopes from the permission catalog;
+- enable write operations without a separate checkpoint;
+- revisit closed stages without a concrete regression;
+- enable unrelated functionality.
 
-# Development Process
+## Current Next Action
 
-For every phase:
+**Do not change code or permissions yet.**
 
-1. Create plan
-2. Create branch
-3. Implement only planned features
-4. Test
-5. Document
-6. Commit
-7. Create checkpoint tag
+Perform the first E2E read-only MCP Inspector request:
 
-# Phase 1.2 — Folder Structure Design
-
-## Goal
-
-Создать архитектуру хранения писем после завершения read-only анализа.
-
-Принцип:
-
-Сначала проектирование структуры.
-
-Создание и изменение папок будут отдельным этапом после подтверждения архитектуры и отдельного checkpoint.
-
-## Phase 1.3.2 — Confirmation Layer
-
-Status: **Completed**
-
-Confirmation requests can be created and set to `approved`, `rejected`, or `expired`. Approval changes only local in-memory state; execution remains unavailable. No Graph write operation is performed.
-
-## Phase 1.3.3 — Controlled Execution Engine Foundation
-
-Status: **Completed**
-
-The execution engine foundation is implemented in SAFE MODE. It prepares and audits requests but blocks execution; it does not call Microsoft Graph write APIs. The project remains **READ ONLY**.
-
-## Phase 1.3.4 — First Controlled Write
-
-Status: **Permission Preparation**
-
-The proposed first controlled scenario is to create the `MCP-Test` folder and move one explicitly selected message from `Inbox` to that folder. This remains planning only until permissions are reviewed, a separate checkpoint and tests are completed, and the user explicitly approves the write operation. No consent or Graph write operation is performed in the permission preparation stage.
-
-## Phase 1.3.5 — Controlled Write Mode Preparation
-
-Status: **Implementation**
-
-Prepare the opt-in `mail-write-controlled` preset with only the `create-mail-folder` and `move-mail-message` tools. `WRITE_EXECUTION_ENABLED` defaults to false. The execution engine remains mock-only and direct Graph write tool calls remain blocked; no permission transition or Graph adapter is enabled.
-
-## Phase 1.3.6 — First Controlled Write Execution
-
-Status: **Completed (Mock Only)**
-
-The isolated adapter interface exercises `create-folder` and `move-message` through a mock adapter only. It validates the feature flag, approved confirmation, and operation allowlist. No Graph write client is connected and no mailbox state is changed.
-
-## Phase 1.3.7 — Real Graph Write Adapter Preparation
-
-Status: **Implementation**
-
-Add the adapter factory and a Graph adapter placeholder that returns `not-implemented`. The factory defaults to mock mode. No Graph client, write API, permission transition, or mailbox change is enabled in this phase.
-
-## Phase 1.3.8 — Permission Activation Preparation
-
-Status: **Completed**
-
-Add a fail-closed check for the already-granted `Mail.ReadWrite` permission before Graph adapter selection. This phase only reads existing token claims; it does not request scopes, start login or consent, or connect a Graph write API.
-
-## Phase 1.3.9 — First Controlled Write
-
-Status: **Permission Activation Pending**
-
-The proposed first test remains limited to creating `MCP-Test` and moving one explicitly selected message. It requires separately approved permission activation, a new checkpoint, and the Graph write adapter implementation. No write action is enabled by this roadmap update.
-
-## Phase 1.3.9.3 — Permission Cleanup Preparation
-
-Status: **Implementation**
-
-Add local diagnostics that compare the minimal expected mail scopes with scope metadata from the existing token cache. Report whether scopes came from a decoded access-token `scp` claim or only from MSAL cache request metadata. This phase does not revoke consent, change app registration or scopes, start login, or modify the mailbox. Phase 1.3.9 remains **Permission Activation Pending**.
-
-## Phase 1.3.9.4 — Consent Reset + Clean Activation Preparation
-
-Status: **Preparation**
-
-Document a safe local token/account cache reset procedure and provide a preview-only cache inventory. No cache deletion, consent revocation, login, permission change, or Graph call occurred in this phase. Phase 1.3.9 remains **Permission Activation Pending**.
-
-## Phase 1.3.9.5 — Clean OAuth State Reset
-
-Status: **Completed**
-
-The confirmed local reset removed the token-cache and selected-account records. It preserved the cache-encryption key. Post-reset diagnostics reported no cached account and no access tokens. Microsoft consent was not revoked and permissions were not changed. See `docs/OAUTH_STATE_RESET_EXECUTION_RESULT.md`.
-
-## Phase 1.3.9.6 — Execute OAuth State Reset
-
-Status: **Completed**
-
-The cache reset completed after the guarded pre-deletion inventory could inspect both the local filesystem and OS credential store. No Graph API call or mailbox change occurred.
-
-## Phase 1.3.9.7 — Fresh Permission Activation
-
-Status: **Pending**
-
-The activation attempt requested only the reviewed scopes and completed login plus Graph `/me` verification, but cached scope metadata included additional permissions and no verified `scp` claim was available. This status remains Pending. See `docs/PERMISSION_ACTIVATION_FINAL_RESULT.md`. Section 2 is not ready until permission validation succeeds.
-
-## Phase 1.3.9.8 — External Permission Source Audit
-
-Status: **Implementation**
-
-Add `--audit-permission-source` to report the effective client, tenant, preset-derived scopes, requested scopes, safe environment-override status, cache location, and local scope-construction path without exposing secrets or calling Microsoft Graph. The audit rules out the selected preset and known local scope overrides as sources of the broad cache metadata; the remote application/consent source remains unidentified. Phase 1.3.9.7 stays **Permission Activation Pending**.
-
-## Phase 1 Review
-
-Status: **Completed**
-
-The Phase 1 architecture and implementation review is documented in `docs/MAIL_ASSISTANT_PHASE1_COMPLETE_REVIEW.md`. This review does not change the Phase 1.3.9 status: permission activation is still pending, and the project remains mock-only with no mailbox changes.
-
-# Project Sections
-
-## Section 1 — Mail Assistant Foundation
-
-Status: **Foundation completed; final permission activation pending**
-
-The foundation includes MCP and Graph read integration, deterministic email classification, folder and action planning, dry-run, confirmation, mock execution, permission validation, OAuth diagnostics, and the verified local OAuth state reset. No live mailbox write has been performed. The final Section 1 activation gate remains pending because the latest validation reported extra cached scope metadata and could not verify granted scopes.
-
-## Section 2 — Mail Organization Engine
-
-Status: **Pending permission validation**
-
-The next planned work is the single-folder and single-message controlled scenario, followed by bounded organization proposals and later automation planning. Begin only after minimal permission activation is verified, the Graph write path has its own review/checkpoint, and the user confirms the specific action. See `docs/MAIL_ASSISTANT_PROJECT_STATE.md` and `docs/NEXT_AGENT_INSTRUCTIONS.md`.
+Покажи последние письма
