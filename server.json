@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.Softeria/ms-365-mcp-server",
-  "title": "Microsoft 365 MCP Server",
-  "description": "Interact with Microsoft 365 and Office services through the Microsoft Graph API.",
+  "name": "io.github.kvantexpert/mcp-ms365",
+  "title": "QUANT EXPERT Microsoft 365 MCP Server",
+  "description": "A Model Context Protocol server for Microsoft 365 and Microsoft Office services through the Microsoft Graph API.",
   "version": "0.0.0-development",
   "repository": {
-    "url": "https://github.com/Softeria/ms-365-mcp-server",
+    "url": "https://github.com/kvantexpert/mcp-ms365",
     "source": "github"
   },
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "@softeria/ms-365-mcp-server",
+      "identifier": "@kvantexpert/mcp-ms365",
       "version": "0.0.0-development",
       "transport": {
         "type": "stdio"
