@@ -31,9 +31,9 @@ In HTTP mode, `MS365_MCP_AUTH_CACHE_COMMAND` is skipped at startup and per Graph
 Released images are published to GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/softeria/ms-365-mcp-server:latest
+docker pull ghcr.io/kvantexpert/mcp-ms365:latest
 # or pin a release
-docker pull ghcr.io/softeria/ms-365-mcp-server:<version>
+docker pull ghcr.io/kvantexpert/mcp-ms365:<version>
 ```
 
 The image runs as a non-root user and takes the same arguments as the CLI:
@@ -42,7 +42,7 @@ The image runs as a non-root user and takes the same arguments as the CLI:
 docker run -p 3000:3000 \
   -e MS365_MCP_CLIENT_ID=your-client-id \
   -e MS365_MCP_TENANT_ID=your-tenant-id \
-  ghcr.io/softeria/ms-365-mcp-server:latest \
+  ghcr.io/kvantexpert/mcp-ms365:latest \
   --http 3000 --org-mode
 ```
 
@@ -148,7 +148,7 @@ When deploying for an organization, create a dedicated app registration instead 
    > **Common pitfall**: registering `https://your-server-domain/callback` here breaks sign-in with `AADSTS50011` (redirect URI mismatch) after the user authenticates. The server has no callback endpoint of its own; the authorization code always goes to the MCP client. Note that platform type **Web** applies because this setup uses a client secret; an app without a secret must register the redirect URI under "Mobile and desktop applications" instead.
 
 2. **Add API permissions** > Microsoft Graph > Delegated permissions
-   Run `npx @softeria/ms-365-mcp-server --org-mode --list-permissions` to print the exact list of permissions required for your enabled tools.
+   Run `npx @kvantexpert/mcp-ms365 --org-mode --list-permissions` to print the exact list of permissions required for your enabled tools.
 
 3. **Grant admin consent** to skip per-user consent prompts:
 

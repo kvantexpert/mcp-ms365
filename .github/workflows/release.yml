@@ -122,8 +122,8 @@ jobs:
       contents: read
       packages: write # ghcr.io
     env:
-      # Lowercase on purpose: ghcr rejects the "Softeria" casing github.repository carries.
-      IMAGE: ghcr.io/softeria/ms-365-mcp-server
+      # Lowercase on purpose: ghcr rejects the "QUANT EXPERT" casing github.repository carries.
+      IMAGE: ghcr.io/kvantexpert/mcp-ms365
       VERSION: ${{ inputs.docker_version || needs.release.outputs.version }}
     steps:
       - uses: actions/checkout@v4
@@ -174,7 +174,7 @@ jobs:
           # run cannot hand :latest to a version npm has already moved past.
           NPM_LATEST=""
           for i in 1 2 3; do
-            NPM_LATEST=$(npm view @softeria/ms-365-mcp-server version 2>/dev/null || true)
+            NPM_LATEST=$(npm view @kvantexpert/mcp-ms365 version 2>/dev/null || true)
             [ -n "$NPM_LATEST" ] && break
             sleep $((5 * i))
           done

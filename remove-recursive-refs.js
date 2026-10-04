@@ -12,8 +12,8 @@ const __dirname = dirname(__filename);
  * Handles complex recursive paths like #/definitions/X/properties/body/anyOf/1
  *
  * I really really hope this solves
- * https://github.com/Softeria/ms-365-mcp-server/issues/36 and perhaps even
- * https://github.com/Softeria/ms-365-mcp-server/issues/62
+ * https://github.com/kvantexpert/mcp-ms365/issues/36 and perhaps even
+ * https://github.com/kvantexpert/mcp-ms365/issues/62
  *
  * Or any other silly tool that doesn't support recursive $refs
  *
