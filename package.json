@@ -1,6 +1,6 @@
 {
-  "name": "@softeria/ms-365-mcp-server",
-  "mcpName": "io.github.Softeria/ms-365-mcp-server",
+  "name": "@kvantexpert/mcp-ms365",
+  "mcpName": "io.github.kvantexpert/mcp-ms365",
   "version": "0.0.0-development",
   "description": " A Model Context Protocol (MCP) server for interacting with Microsoft 365 and Office services through the Graph API",
   "type": "module",
@@ -80,6 +80,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Softeria/ms-365-mcp-server.git"
+    "url": "https://github.com/kvantexpert/mcp-ms365.git"
   }
 }
