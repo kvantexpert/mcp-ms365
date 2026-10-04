@@ -1,6 +1,6 @@
 # ms-365-mcp-server
 
-[![npm version](https://img.shields.io/npm/v/@softeria/ms-365-mcp-server.svg)](https://www.npmjs.com/package/@softeria/ms-365-mcp-server) [![build status](https://github.com/softeria/ms-365-mcp-server/actions/workflows/build.yml/badge.svg)](https://github.com/softeria/ms-365-mcp-server/actions/workflows/build.yml) [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/softeria/ms-365-mcp-server/blob/main/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@kvantexpert/mcp-ms365.svg)](https://www.npmjs.com/package/@kvantexpert/mcp-ms365) [![build status](https://github.com/kvantexpert/mcp-ms365/actions/workflows/build.yml/badge.svg)](https://github.com/kvantexpert/mcp-ms365/actions/workflows/build.yml) [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kvantexpert/mcp-ms365/blob/main/LICENSE)
 
 Microsoft 365 MCP Server
 
@@ -71,7 +71,7 @@ value[1]{id,displayName,mail,jobTitle}:
 Via CLI flag:
 
 ```bash
-npx @softeria/ms-365-mcp-server --toon
+npx @kvantexpert/mcp-ms365 --toon
 ```
 
 Via Claude Desktop configuration:
@@ -81,7 +81,7 @@ Via Claude Desktop configuration:
   "mcpServers": {
     "ms365": {
       "command": "npx",
-      "args": ["-y", "@softeria/ms-365-mcp-server", "--toon"]
+      "args": ["-y", "@kvantexpert/mcp-ms365", "--toon"]
     }
   }
 }
@@ -90,7 +90,7 @@ Via Claude Desktop configuration:
 Via environment variable:
 
 ```bash
-MS365_MCP_OUTPUT_FORMAT=toon npx @softeria/ms-365-mcp-server
+MS365_MCP_OUTPUT_FORMAT=toon npx @kvantexpert/mcp-ms365
 ```
 
 ## Supported Services & Tools
@@ -127,13 +127,13 @@ Permissions are requested dynamically based on which tools are enabled. Use `--l
 
 ```bash
 # Personal mode (default)
-npx @softeria/ms-365-mcp-server --list-permissions
+npx @kvantexpert/mcp-ms365 --list-permissions
 
 # Organization mode (includes Teams, SharePoint, etc.)
-npx @softeria/ms-365-mcp-server --org-mode --list-permissions
+npx @kvantexpert/mcp-ms365 --org-mode --list-permissions
 
 # Filtered by preset
-npx @softeria/ms-365-mcp-server --preset mail --list-permissions
+npx @kvantexpert/mcp-ms365 --preset mail --list-permissions
 ```
 
 This is useful for enterprise environments where Graph API permissions must be pre-approved and admin-consented before deploying a new version.
@@ -155,7 +155,7 @@ By default, MSAL requests the scopes implied by the enabled tools, and the tool 
 Enterprise and headless deployments can add a scope boundary with `--allowed-scopes` or `MS365_MCP_ALLOWED_SCOPES`. When configured, the server first computes the normal tool surface, then hides Graph tools whose required scopes are not covered by the allowlist. OAuth metadata and login flows request only the effective permissions for the tools that remain enabled.
 
 ```bash
-npx @softeria/ms-365-mcp-server \
+npx @kvantexpert/mcp-ms365 \
   --org-mode \
   --enabled-tools '^(list-mail-messages|get-mail-message|list-drives|get-drive-item|download-bytes)$' \
   --allowed-scopes 'User.Read Mail.Read Files.Read'
@@ -173,7 +173,7 @@ SharePoint supports two enterprise permission models:
 The default org-mode behavior continues to request the broad SharePoint scopes used by existing deployments. Enterprises that want selected-site SharePoint access can set an allowlist containing `Sites.Selected` instead of broad `Sites.*.All` scopes. Direct site/list/item tools that target an explicit SharePoint site, and the `/drives/{drive-id}/...` item tools (list, get, upload, folder, move/rename, copy, versions) for drives of a granted site, can run with `Sites.Selected`; tenant-wide SharePoint discovery and search tools still require broad SharePoint scopes.
 
 ```bash
-npx @softeria/ms-365-mcp-server \
+npx @kvantexpert/mcp-ms365 \
   --org-mode \
   --read-only \
   --enabled-tools 'sharepoint|site|drive|planner' \
@@ -187,12 +187,12 @@ In HTTP mode, OAuth discovery advertises the effective filtered permissions so c
 `--allowed-scopes` only ever _narrows_ the token request. To request a Graph scope that no bundled tool needs — for example to drive an endpoint via `graph-batch` — use `--extra-scopes` (or `MS365_MCP_EXTRA_SCOPES`). These scopes are appended verbatim to the token request, on top of the tool-derived scopes.
 
 ```bash
-npx @softeria/ms-365-mcp-server \
+npx @kvantexpert/mcp-ms365 \
   --org-mode \
   --extra-scopes 'CopilotPackages.ReadWrite.All'
 ```
 
-This is for use with your own Azure app registration (`MS365_MCP_CLIENT_ID` / `MS365_MCP_CLIENT_SECRET`): the default Softeria app only declares a lean, fixed permission set, so request additional scopes against an app you control (your tenant admin consents to them there). CLI value takes precedence over the env var; an empty value fails at startup.
+This is for use with your own Azure app registration (`MS365_MCP_CLIENT_ID` / `MS365_MCP_CLIENT_SECRET`): the default QUANT EXPERT app only declares a lean, fixed permission set, so request additional scopes against an app you control (your tenant admin consents to them there). CLI value takes precedence over the env var; an empty value fails at startup.
 
 ## Organization/Work Mode
 
@@ -203,7 +203,7 @@ To access work/school features (Teams, SharePoint, etc.), enable organization mo
   "mcpServers": {
     "ms365": {
       "command": "npx",
-      "args": ["-y", "@softeria/ms-365-mcp-server", "--org-mode"]
+      "args": ["-y", "@kvantexpert/mcp-ms365", "--org-mode"]
     }
   }
 }
@@ -251,7 +251,7 @@ To add this MCP server to Claude Desktop, edit the config file under Settings > 
   "mcpServers": {
     "ms365": {
       "command": "npx",
-      "args": ["-y", "@softeria/ms-365-mcp-server"]
+      "args": ["-y", "@kvantexpert/mcp-ms365"]
     }
   }
 }
@@ -264,7 +264,7 @@ To add this MCP server to Claude Desktop, edit the config file under Settings > 
   "mcpServers": {
     "ms365": {
       "command": "npx",
-      "args": ["-y", "@softeria/ms-365-mcp-server", "--org-mode"]
+      "args": ["-y", "@kvantexpert/mcp-ms365", "--org-mode"]
     }
   }
 }
@@ -277,7 +277,7 @@ To add this MCP server to Claude Desktop, edit the config file under Settings > 
   "mcpServers": {
     "ms365-china": {
       "command": "npx",
-      "args": ["-y", "@softeria/ms-365-mcp-server", "--org-mode", "--cloud", "china"]
+      "args": ["-y", "@kvantexpert/mcp-ms365", "--org-mode", "--cloud", "china"]
     }
   }
 }
@@ -288,27 +288,27 @@ To add this MCP server to Claude Desktop, edit the config file under Settings > 
 #### Personal Account (MSA)
 
 ```bash
-claude mcp add ms365 -- npx -y @softeria/ms-365-mcp-server
+claude mcp add ms365 -- npx -y @kvantexpert/mcp-ms365
 ```
 
 #### Work/School Account (Global)
 
 ```bash
 # macOS/Linux
-claude mcp add ms365 -- npx -y @softeria/ms-365-mcp-server --org-mode
+claude mcp add ms365 -- npx -y @kvantexpert/mcp-ms365 --org-mode
 
 # Windows (use cmd /c wrapper)
-claude mcp add ms365 -s user -- cmd /c "npx -y @softeria/ms-365-mcp-server --org-mode"
+claude mcp add ms365 -s user -- cmd /c "npx -y @kvantexpert/mcp-ms365 --org-mode"
 ```
 
 #### Work/School Account (China 21Vianet)
 
 ```bash
 # macOS/Linux
-claude mcp add ms365-china -- npx -y @softeria/ms-365-mcp-server --org-mode --cloud china
+claude mcp add ms365-china -- npx -y @kvantexpert/mcp-ms365 --org-mode --cloud china
 
 # Windows (use cmd /c wrapper)
-claude mcp add ms365-china -s user -- cmd /c "npx -y @softeria/ms-365-mcp-server --org-mode --cloud china"
+claude mcp add ms365-china -s user -- cmd /c "npx -y @kvantexpert/mcp-ms365 --org-mode --cloud china"
 ```
 
 For other interfaces that support MCPs, please refer to their respective documentation for the correct
@@ -321,7 +321,7 @@ Open WebUI supports MCP servers via HTTP transport with OAuth 2.1.
 1. Start the server with HTTP mode:
 
    ```bash
-   npx @softeria/ms-365-mcp-server --http
+   npx @kvantexpert/mcp-ms365 --http
    ```
 
 2. In Open WebUI, go to **Admin Settings → Tools** (`/admin/settings/tools`) → **Add Connection**:
@@ -341,7 +341,7 @@ docker run -d -p 8080:8080 \
   -e OPENAI_API_KEY \
   ghcr.io/open-webui/open-webui:main
 
-npx @softeria/ms-365-mcp-server --http
+npx @kvantexpert/mcp-ms365 --http
 ```
 
 Then add connection with URL `http://localhost:3000/mcp` and ID `ms-365`.
@@ -390,7 +390,7 @@ For interactive authentication via device code:
   - Use `verify-login` tool to confirm
 - **CLI login**:
   ```bash
-  npx @softeria/ms-365-mcp-server --login
+  npx @kvantexpert/mcp-ms365 --login
   ```
   Follow the URL and code prompt in the terminal.
 
@@ -401,7 +401,7 @@ Tokens are cached securely in your OS credential store (fallback to file).
 When running with `--http`, the server **requires** OAuth authentication:
 
 ```bash
-npx @softeria/ms-365-mcp-server --http 3000
+npx @kvantexpert/mcp-ms365 --http 3000
 ```
 
 This mode:
@@ -469,7 +469,7 @@ If you are running ms-365-mcp-server as part of a larger system that manages Mic
 provide an access token directly to this MCP server:
 
 ```bash
-MS365_MCP_OAUTH_TOKEN=your_oauth_token npx @softeria/ms-365-mcp-server
+MS365_MCP_OAUTH_TOKEN=your_oauth_token npx @kvantexpert/mcp-ms365
 ```
 
 This method:
@@ -491,18 +491,18 @@ Use a single server instance to serve multiple Microsoft accounts. When more tha
 
 ```bash
 # Login first account (device code flow)
-npx @softeria/ms-365-mcp-server --login
+npx @kvantexpert/mcp-ms365 --login
 # Follow the device code prompt, sign in as personal@outlook.com
 
 # Login second account
-npx @softeria/ms-365-mcp-server --login
+npx @kvantexpert/mcp-ms365 --login
 # Follow the device code prompt, sign in as work@company.com
 ```
 
 **List configured accounts:**
 
 ```bash
-npx @softeria/ms-365-mcp-server --list-accounts
+npx @kvantexpert/mcp-ms365 --list-accounts
 ```
 
 **Use in tool calls:** Pass `"account": "work@company.com"` in any tool request:
@@ -524,10 +524,10 @@ Headless stdio deployments can pin the local MSAL cache to one expected Microsof
 
 ```bash
 # Username matching is case-insensitive
-MS365_MCP_EXPECTED_USERNAME=work@company.com npx @softeria/ms-365-mcp-server --login
+MS365_MCP_EXPECTED_USERNAME=work@company.com npx @kvantexpert/mcp-ms365 --login
 
 # Or pin the exact MSAL homeAccountId shown by --list-accounts
-npx @softeria/ms-365-mcp-server --expected-home-account-id <homeAccountId> --login
+npx @kvantexpert/mcp-ms365 --expected-home-account-id <homeAccountId> --login
 ```
 
 Use `--list-accounts` to discover `homeAccountId` values. The MCP `list-accounts` tool intentionally hides account IDs, so use the CLI for exact ID pinning.
@@ -551,9 +551,9 @@ Pinning is opt-in and local-MSAL only:
 To reduce initial connection overhead and token usage, use preset tool categories instead of loading the full tool set:
 
 ```bash
-npx @softeria/ms-365-mcp-server --preset mail
-npx @softeria/ms-365-mcp-server --preset mail-readonly
-npx @softeria/ms-365-mcp-server --list-presets  # See all available presets
+npx @kvantexpert/mcp-ms365 --preset mail
+npx @kvantexpert/mcp-ms365 --preset mail-readonly
+npx @kvantexpert/mcp-ms365 --list-presets  # See all available presets
 ```
 
 Available presets: `mail`, `mail-readonly`, `calendar`, `files`, `personal`, `work`, `excel`, `contacts`, `tasks`, `onenote`, `search`, `users`, `outlook`, `onedrive`, `teams`, `teams-write`, `all`
@@ -566,16 +566,16 @@ The `outlook`, `onedrive` and `teams` presets are app-scoped: they expose exactl
 
 ```bash
 # Outlook only (mail + calendar + contacts; no shared mailboxes, no files)
-npx @softeria/ms-365-mcp-server --preset outlook
+npx @kvantexpert/mcp-ms365 --preset outlook
 
 # Teams only (requires --org-mode)
-npx @softeria/ms-365-mcp-server --org-mode --preset teams
+npx @kvantexpert/mcp-ms365 --org-mode --preset teams
 ```
 
 The `teams-write` preset is the send-only counterpart to `--read-only`: send in chats, send/reply in channels, list chats/teams/channels by name, and activity notifications - no message reading and no byte downloaders. The requested token is minimal by construction (`Chat.ReadBasic`, the `*.Send` scopes, and basic team/channel listing - nothing that can read message content):
 
 ```bash
-npx @softeria/ms-365-mcp-server --org-mode --preset teams-write
+npx @kvantexpert/mcp-ms365 --org-mode --preset teams-write
 ```
 
 ## Dynamic Tool Discovery
@@ -583,7 +583,7 @@ npx @softeria/ms-365-mcp-server --org-mode --preset teams-write
 Instead of loading every tool upfront, use dynamic discovery so the LLM finds and loads tools only when it needs them:
 
 ```bash
-npx @softeria/ms-365-mcp-server --discovery
+npx @kvantexpert/mcp-ms365 --discovery
 ```
 
 Keeps the initial context small and cuts token usage, especially useful for long sessions or cost-sensitive setups (e.g. Open WebUI running against a paid API).
@@ -965,7 +965,7 @@ For production deployments, you can store secrets in Azure Key Vault instead of 
 
 4. **Configure the server**:
    ```bash
-   MS365_MCP_KEYVAULT_URL=https://your-keyvault-name.vault.azure.net npx @softeria/ms-365-mcp-server
+   MS365_MCP_KEYVAULT_URL=https://your-keyvault-name.vault.azure.net npx @kvantexpert/mcp-ms365
    ```
 
 ### Secret Name Mapping
@@ -997,42 +997,3 @@ Outgoing messages can be wrapped in a configurable signoff (e.g. a `🤖` prefix
 Once configured, it applies to all Teams messages (sends, replies and edits, including via `graph-batch`), to direct mail sends (`send-mail`, reply/forward, their shared-mailbox variants, and group thread replies), and to mail drafts as their content is written — `send-draft-message` sends a draft as-is, so a draft you wrote yourself goes out untouched. A message that already carries the marker is not signed twice, and a send whose body cannot take the signoff is refused rather than sent unsigned.
 
 Markers may contain markup (e.g. a coloured `<span>`) as long as it renders visible text. Note that the signoff is a guardrail against an agent misusing the tools it was given, not a hard security boundary — an agent with shell access on the same machine could simply restart the server without it.
-
-## Production Deployment
-
-See [docs/deployment.md](docs/deployment.md) for a full guide to hosting the server for organization-wide access, including Docker, Azure Container Apps, Azure App Service, Azure AD app registration, reverse proxy setup, client configuration, and exposed endpoints.
-
-## Contributing
-
-We welcome contributions! Before submitting a pull request, please ensure your changes meet our quality standards.
-
-Run the verification script to check all code quality requirements:
-
-```bash
-npm run verify
-```
-
-### For Developers
-
-After cloning the repository, you may need to generate the client code from the Microsoft Graph OpenAPI specification:
-
-```bash
-npm run generate
-```
-
-## Related Projects
-
-- [ms-365-admin-mcp-server](https://github.com/okapi-ca/ms-365-admin-mcp-server) by [@okapi-ca](https://github.com/okapi-ca): companion server for admin/daemon scenarios using application permissions (client credentials flow), covering security alerts, audit logs, service health, and usage reports.
-
-## Support
-
-If you're having problems or need help:
-
-- Create an [issue](https://github.com/softeria/ms-365-mcp-server/issues)
-- Start a [discussion](https://github.com/softeria/ms-365-mcp-server/discussions)
-- Email: eirikb@eirikb.no
-- Discord: https://discord.gg/WvGVNScrAZ or @eirikb
-
-## License
-
-MIT © 2026 Softeria
