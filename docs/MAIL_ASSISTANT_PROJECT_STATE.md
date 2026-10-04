@@ -2,9 +2,9 @@
 
 ## Current checkpoint
 
-mcp-ms365-codex-mail-readonly-v1
+**MAIL-READ-E2E-PASSED**
 
-The checkpoint name is historical. Codex is not a required component of the current architecture.
+Previous checkpoint name: `mcp-ms365-codex-mail-readonly-v1`. The name is historical. Codex is not a required component of the current architecture.
 
 ## Product
 
@@ -41,7 +41,27 @@ QUANT EXPERT Mail Assistant
 - Historical Client ID 084a3e9f-a9f4-43f7-89f9-d229cf97853e is forbidden.
 - Repository branding and deployment references cleaned.
 - GitHub SSH push from server verified.
-- Current cleanup commit: adb51ce.
+- First complete read-only E2E test passed.
+
+## E2E result
+
+The verified path is:
+
+MCP E2E test
+→ HTTPS /mcp
+→ Microsoft Device Code OAuth
+→ QUANT EXPERT application
+→ quantexpert@outlook.com
+→ OAuth access token
+→ MCP initialize (HTTP 200)
+→ tools/list
+→ list-mail-messages
+→ Microsoft Graph
+→ real mailbox data
+
+The test returned real mailbox messages and Microsoft Graph pagination metadata (`@odata.nextLink`).
+
+No write operation was performed.
 
 ## Architecture clarification
 
@@ -72,22 +92,18 @@ A catalog entry is not evidence of a granted permission.
 
 ## Next gate
 
-First E2E read-only request through MCP Inspector:
+**Stage 4 — Mail Intelligence**
 
-Покажи последние письма
+The next work remains read-only:
 
-Acceptance:
+- classification;
+- topic detection;
+- sender analysis;
+- urgency;
+- project/business context;
+- action recommendations.
 
-MCP Inspector
-→ HTTPS /mcp
-→ MCP OAuth/session
-→ QUANT EXPERT application
-→ quantexpert@outlook.com
-→ mcp-ms365
-→ Microsoft Graph
-→ mailbox data
-
-No write operation is part of this test.
+No Microsoft permission expansion is part of this step.
 
 ## Project relationship
 
@@ -104,4 +120,4 @@ Technical implementation stays in mcp-ms365. Architecture, status, roadmap and c
 - Do not enable write functions.
 - Do not expand permissions.
 - Do not revisit closed stages without a concrete regression.
-- Keep the next action limited to the first read-only E2E test.
+- Keep the next action limited to read-only Mail Intelligence.
