@@ -1,9 +1,8 @@
-# ms-365-mcp-server
+# QUANT EXPERT Microsoft 365 MCP Server
 
 [![npm version](https://img.shields.io/npm/v/@kvantexpert/mcp-ms365.svg)](https://www.npmjs.com/package/@kvantexpert/mcp-ms365) [![build status](https://github.com/kvantexpert/mcp-ms365/actions/workflows/build.yml/badge.svg)](https://github.com/kvantexpert/mcp-ms365/actions/workflows/build.yml) [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kvantexpert/mcp-ms365/blob/main/LICENSE)
 
-Microsoft 365 MCP Server
-
+QUANT EXPERT Microsoft 365 MCP Server — MCP server for Microsoft 365 and Microsoft Office services through the Microsoft Graph API.
 A Model Context Protocol (MCP) server for interacting with Microsoft 365 and Microsoft Office services through the Graph
 API.
 
@@ -95,7 +94,7 @@ MS365_MCP_OUTPUT_FORMAT=toon npx @kvantexpert/mcp-ms365
 
 ## Supported Services & Tools
 
-The server provides 300+ tools covering most of the Microsoft Graph API surface. Each tool maps 1-to-1 to a Graph API endpoint and is defined declaratively in [`src/endpoints.json`](src/endpoints.json).
+The server provides a broad set of Microsoft Graph tools, with access controlled by presets, read-only mode, enabled-tool filters, and allowed scopes. Each tool maps 1-to-1 to a Graph API endpoint and is defined declaratively in [`src/endpoints.json`](src/endpoints.json).
 
 ### Personal Account Tools (Available by default)
 
@@ -333,7 +332,7 @@ Open WebUI supports MCP servers via HTTP transport with OAuth 2.1.
 
 > **Note**: Dynamic client registration is enabled by default in HTTP mode. Use `--no-dynamic-registration` (or set `MS365_MCP_DISABLE_DCR=true`) to disable it. If using a custom Azure Entra app, the platform type for your redirect URI depends on whether the app has a client secret: with a secret use "Web", without one use "Mobile and desktop applications" (never "Single-page application").
 
-**Quick test setup** using the default Azure app (ID `ms-365` and `localhost:8080` are pre-configured):
+**Quick test setup for Open WebUI using your own Microsoft app registration:
 
 ```bash
 docker run -d -p 8080:8080 \
