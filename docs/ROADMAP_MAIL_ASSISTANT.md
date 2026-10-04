@@ -2,15 +2,15 @@
 
 ## Current Checkpoint
 
-mcp-ms365-codex-mail-readonly-v1
+**MAIL-READ-E2E-PASSED**
 
-The checkpoint name is historical. Codex is not part of the current connection architecture.
+Previous checkpoint name: `mcp-ms365-codex-mail-readonly-v1`. The name is historical. Codex is not part of the current connection architecture.
 
 ## Current Position
 
-**Stage: Read-only Mail MCP verified. Next: first E2E mail read through MCP Inspector.**
+**Stage: Read-only Mail MCP verified and first E2E mail read passed. Next: Mail Intelligence.**
 
-The current deployment is:
+The verified deployment is:
 
 - Application: QUANT EXPERT Mail Assistant
 - Client ID: 657cea31-052c-4e27-b97e-43a146ea72f0
@@ -105,6 +105,39 @@ The MCP resource is:
 
 https://mcp-ms365.kvantexpert.ru/mcp
 
+## Stage 3 — First E2E Mail Read
+
+**Status: PASSED**
+
+The complete path was executed successfully:
+
+MCP E2E test
+→ HTTPS /mcp
+→ Microsoft Device Code OAuth
+→ QUANT EXPERT application
+→ quantexpert@outlook.com
+→ OAuth access token
+→ MCP initialize (HTTP 200)
+→ tools/list
+→ list-mail-messages
+→ Microsoft Graph
+→ real mailbox data
+
+The test returned real messages from the mailbox and a Microsoft Graph `@odata.nextLink` for pagination.
+
+Acceptance criteria:
+
+1. OAuth succeeds for the QUANT EXPERT application. **PASS**
+2. Microsoft account is quantexpert@outlook.com. **PASS**
+3. MCP initialize succeeds. **PASS**
+4. MCP tools are available. **PASS**
+5. `list-mail-messages` succeeds. **PASS**
+6. Mail data is returned through Microsoft Graph. **PASS**
+7. No write operation occurs. **PASS**
+8. Result is recorded as an E2E checkpoint. **PASS**
+
+The temporary PowerShell/Node E2E script is a validation aid; it does not change the read-only permission boundary.
+
 ## What Was NOT Done
 
 The following remain outside the current checkpoint:
@@ -122,41 +155,15 @@ The following remain outside the current checkpoint:
 - Files write
 - Teams write
 
-No write operation should be enabled by this roadmap update.
-
-## Stage 3 — First E2E Mail Read
-
-**Status: NEXT**
-
-Run the first complete path:
-
-MCP Inspector
-→ HTTPS /mcp
-→ MCP OAuth
-→ QUANT EXPERT Microsoft application
-→ quantexpert@outlook.com
-→ OAuth token
-→ mcp-ms365
-→ Microsoft Graph
-→ mailbox read
-
-Test request:
-
-Покажи последние письма
-
-Acceptance criteria:
-
-1. MCP Inspector connects to the public /mcp endpoint.
-2. OAuth session uses the QUANT EXPERT application.
-3. Microsoft account is quantexpert@outlook.com.
-4. MCP tool call succeeds.
-5. Mail data is returned through Microsoft Graph.
-6. No write operation occurs.
-7. Result is recorded as an E2E checkpoint.
+No write operation is enabled by this roadmap update.
 
 ## Stage 4 — Mail Intelligence
 
-After successful Stage 3:
+**Status: NEXT**
+
+Remain read-only.
+
+Planned work:
 
 - email classification;
 - topic classification;
@@ -165,7 +172,7 @@ After successful Stage 3:
 - project/business context;
 - action recommendations.
 
-This stage remains read-only.
+The next implementation should consume already-verified mail read data and add analysis/orchestration logic without expanding Microsoft permissions.
 
 ## Stage 5 — Folder Structure Design
 
@@ -254,8 +261,6 @@ Never:
 
 ## Current Next Action
 
-**Do not change code or permissions yet.**
+**Do not change Microsoft permissions or enable write operations.**
 
-Perform the first E2E read-only MCP Inspector request:
-
-Покажи последние письма
+Proceed to Stage 4 — Mail Intelligence, keeping the existing read-only boundary.
