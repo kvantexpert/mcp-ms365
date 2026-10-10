@@ -332,7 +332,7 @@ Open WebUI supports MCP servers via HTTP transport with OAuth 2.1.
 
 > **Note**: Dynamic client registration is enabled by default in HTTP mode. Use `--no-dynamic-registration` (or set `MS365_MCP_DISABLE_DCR=true`) to disable it. If using a custom Azure Entra app, the platform type for your redirect URI depends on whether the app has a client secret: with a secret use "Web", without one use "Mobile and desktop applications" (never "Single-page application").
 
-**Quick test setup for Open WebUI using your own Microsoft app registration:
+\*\*Quick test setup for Open WebUI using your own Microsoft app registration:
 
 ```bash
 docker run -d -p 8080:8080 \
