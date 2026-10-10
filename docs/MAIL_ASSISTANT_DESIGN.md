@@ -173,18 +173,19 @@ The current architecture should remain separated into two layers:
       +-----+-----+
       |     |     |
       v     v     v
-   classify topic urgency
-      |     |     |
-      +-----+-----+
-            |
-            v
-   business/project context
-            |
-            v
-    recommendation
-            |
-            v
-       user / agent
+
+classify topic urgency
+| | |
++-----+-----+
+|
+v
+business/project context
+|
+v
+recommendation
+|
+v
+user / agent
 
 The intelligence layer must not acquire additional Microsoft permissions merely to perform analysis of already-read data.
 
@@ -275,3 +276,5 @@ Before any write operation:
 **Build the first Mail Intelligence read-only scenario on top of the already verified `list-mail-messages` data.**
 
 The next implementation should focus on the analysis contract and output structure, not on Microsoft permission expansion and not on mailbox mutation.
+
+[executed on device: mcp-ms365 (65080dd4-e76f-4d8e-8c2a-b0745624fbad)]
