@@ -276,5 +276,3 @@ Before any write operation:
 **Build the first Mail Intelligence read-only scenario on top of the already verified `list-mail-messages` data.**
 
 The next implementation should focus on the analysis contract and output structure, not on Microsoft permission expansion and not on mailbox mutation.
-
-[executed on device: mcp-ms365 (65080dd4-e76f-4d8e-8c2a-b0745624fbad)]
