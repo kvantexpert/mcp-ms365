@@ -49,5 +49,3 @@ When continuing work, start from:
 1. Read ARCHITECTURE_STATE.md
 2. Read TROUBLESHOOTING.md
 3. Continue source audit
-
-[executed on device: mcp-ms365 (65080dd4-e76f-4d8e-8c2a-b0745624fbad)]
