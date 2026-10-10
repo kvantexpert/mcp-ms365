@@ -49,6 +49,9 @@ jobs:
       # vitest 4 requires Node >= 20, so tests run on 20+ only
       - name: Run tests
         if: matrix.node-version != '18.x'
+        env:
+          MS365_MCP_CLIENT_ID: "00000000-0000-0000-0000-000000000001"
+          MS365_MCP_TENANT_ID: common
         run: npm test
 
       # On Node 18 we still verify the built artifact starts and loads its modules
