@@ -46,9 +46,13 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-      # vitest 4 requires Node >= 20, so tests run on 20+ only
+      # Tests requiring an app registration use a clearly non-secret dummy ID.
+      # Individual tests explicitly stub/clear this variable when testing the unset case.
+      # Never use a production app ID or secret in CI.
       - name: Run tests
         if: matrix.node-version != '18.x'
+        env:
+          MS365_MCP_CLIENT_ID: test-client-id
         run: npm test
 
       # On Node 18 we still verify the built artifact starts and loads its modules
