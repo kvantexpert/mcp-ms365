@@ -66,5 +66,3 @@ Every resolved incident should add:
 - root cause;
 - fix;
 - prevention step.
-
-[executed on device: mcp-ms365 (65080dd4-e76f-4d8e-8c2a-b0745624fbad)]
