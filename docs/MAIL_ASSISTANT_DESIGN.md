@@ -1,256 +1,277 @@
-# Mail Assistant Design
+# QUANT EXPERT Mail Assistant — Current Design
 
-**Project:** `kvantexpert/mcp-ms365`
-**Phase:** Phase 1 — Mail Assistant (Read-Only)
-**Checkpoint:** `mcp-ms365-codex-mail-readonly-v1`
-**Document:** `docs/MAIL_ASSISTANT_DESIGN.md`
+## 1. Product purpose
 
-## 1. Назначение
+**QUANT EXPERT Mail Assistant** is the first Microsoft 365 assistant of the QUANT EXPERT AI Platform.
 
-Mail Assistant — AI-ассистент поверх Microsoft 365 / Microsoft Graph и MCP-сервера `mcp-ms365`.
+The current product is being built as a **read-first Mail Assistant**:
 
-Цель Phase 1 — безопасно работать с почтой в режиме **read-only**:
-- получать письма;
-- анализировать входящие;
-- определять важные сообщения;
-- определять письма, требующие ответа;
-- строить историю переписки;
-- анализировать отправителей и содержание;
-- классифицировать письма;
-- предлагать организацию почты.
+1. securely connect to the user's Microsoft mailbox;
+2. read mail through Microsoft Graph via MCP;
+3. analyze and classify the mail;
+4. provide useful recommendations;
+5. only later, through a separate controlled stage, introduce mailbox-changing operations.
 
-**На этом этапе ассистент не изменяет почтовый ящик.**
+The current work is **not** a continuation of another vendor's application or project. The active product identity is QUANT EXPERT Mail Assistant.
 
-## 2. Граница Phase 1
+## 2. Current product identity
 
-Разрешено: чтение сообщений и метаданных, анализ, группировка, поиск связанных сообщений, классификация, summary и рекомендации.
+- Application: **QUANT EXPERT Mail Assistant**
+- Client ID: **657cea31-052c-4e27-b97e-43a146ea72f0**
+- Microsoft account: **quantexpert@outlook.com**
+- Tenant: **consumers**
+- MCP endpoint: **https://mcp-ms365.kvantexpert.ru/mcp**
+- Transport: **Streamable HTTP**
+- Preset: **mail**
+- Access: **READ ONLY**
 
-Запрещено до `mcp-ms365-mail-write-v1`: перемещение, удаление, создание/переименование папок, категории, правила, отправка, reply/forward и любые write-операции.
+Current effective Graph permission boundary:
 
-## 3. Архитектура
+- `Mail.Read`
+- `MailboxSettings.Read`
+- `User.Read`
 
-```text
-User
-  ↓
-Mail Assistant
-  ↓
-MCP Client
-  ↓
-mcp-ms365
-  ↓
-Microsoft Graph
-  ↓
-Outlook Mail
-```
+## 3. What the current system does
 
-Pipeline:
-```text
-Graph → mcp-ms365 Mail Read-Only → получение → нормализация → анализ
-                                                ↓
-                         Summary / Important / Needs Reply / History
-                                                ↓
-                                           Classification
-                                                ↓
-                                      Organization Proposal
-```
+The current system already performs the complete technical connection:
 
-## 4. Функции Phase 1
+    Mail Assistant / MCP Client
+              |
+              v
+    HTTPS Streamable HTTP /mcp
+              |
+              v
+         mcp-ms365
+              |
+              +---- mail read-only preset
+              +---- OAuth identity
+              +---- allowed read tools
+              |
+              v
+      Microsoft Graph client
+              |
+              v
+       Microsoft Graph API
+              |
+              v
+       Outlook mailbox data
 
-### Анализ почты
-- сводки входящих;
-- важные письма;
-- письма, требующие ответа;
-- история переписки;
-- поиск по отправителю/теме/содержанию.
+The first complete read-only E2E path has been verified.
 
-### Классификация
-Базовые категории:
-- Клиенты
-- Проекты
-- Финансы
-- Документы
-- Безопасность
-- Автоматизация
-- Личные
+## 4. Current E2E checkpoint
 
-Дополнительно анализируются отправитель, содержание, признаки важности, причина классификации и confidence.
+**MAIL-READ-E2E-PASSED**
 
-### Proposal организации
-Целевая логическая структура:
-```text
-Inbox
-├── Клиенты
-├── Проекты
-├── Финансы
-├── Документы
-├── Автоматизация
-└── Архив
-```
+Verified path:
 
-Примеры: `Invoice → Финансы/Счета`, `Клиент X → Клиенты/X`.
-Proposal не является действием. Реальные изменения только после write checkpoint.
+    MCP E2E test
+    → HTTPS /mcp
+    → Microsoft Device Code OAuth
+    → QUANT EXPERT application
+    → quantexpert@outlook.com
+    → OAuth access token
+    → MCP initialize
+    → tools/list
+    → list-mail-messages
+    → Microsoft Graph
+    → real mailbox data
 
-## 5. Нормализованная модель сообщения
+The test returned real mailbox messages and Microsoft Graph pagination metadata.
 
-Минимальные поля:
-```text
-message_id
-conversation_id
-internet_message_id
-subject
-from
-to
-cc
-received_at
-sent_at
-body
-body_preview
-importance
-has_attachments
-attachments_metadata
-web_link
-parent_folder
-```
+No mailbox write operation was performed.
 
-Разделять Graph/MCP transport model, internal mail model и AI analysis model.
+This means the basic Microsoft 365 Mail data-plane connection is now a completed foundation, not the current development task.
 
-## 6. Security / Permissions
+## 5. Current development stage — Mail Intelligence
 
-Целевой read-only набор:
-```text
-Mail.Read
-MailboxSettings.Read
-User.Read
-```
+The active stage is **Mail Intelligence**.
 
-Сервер:
-```text
---preset mail --read-only
---http 127.0.0.1:3000
---public-url https://mcp-ms365.kvantexpert.ru
-```
+The objective is to turn verified mail data into useful understanding without changing the mailbox.
 
-Public MCP endpoint:
-`https://mcp-ms365.kvantexpert.ru/mcp`
+The first read-only intelligence layer should analyze:
 
-## 7. Deployment checkpoint
+- subject;
+- sender;
+- received date/time;
+- read/unread state;
+- attachment presence;
+- body preview;
+- message metadata;
+- topic;
+- urgency;
+- project reference;
+- business context;
+- suggested action.
 
-Зафиксировано:
-- Ubuntu 22.04.5 LTS;
-- Node.js v24.21.0 на сервере;
-- systemd `mcp-ms365.service`;
-- `/opt/mcp-ms365`;
-- bind `127.0.0.1:3000`;
-- Nginx reverse proxy;
-- HTTPS/Let's Encrypt;
-- DNS `mcp-ms365.kvantexpert.ru`.
+Initial logical categories:
 
-Проверки:
-```text
-curl http://127.0.0.1:3000
-→ Microsoft 365 MCP Server is running
+- Clients;
+- Projects;
+- Finance;
+- Documents;
+- Security;
+- Automation;
+- Personal.
 
-GET /mcp
-→ 405
+The analysis result is informational/recommendational. It does not move, delete, send, rename, create or otherwise modify mail.
 
-POST /mcp без Bearer
-→ 401 Unauthorized
-```
+## 6. First Mail Intelligence scenario
 
-Это подтверждает работу HTTP endpoint и OAuth protection.
+The first concrete scenario should be deliberately small:
 
-## 8. OAuth discovery checkpoint
+**Input**
 
-Protected Resource Metadata рекламирует ресурс `https://mcp-ms365.kvantexpert.ru/mcp`, authorization server `https://mcp-ms365.kvantexpert.ru` и scopes `Mail.Read`, `MailboxSettings.Read`, `User.Read`.
+    Показать последние письма
 
-Authorization server metadata подтверждает:
-- `/authorize`
-- `/token`
-- `/register`
-- authorization code + refresh token;
-- PKCE `S256`.
+**Read layer**
 
-## 9. MCP Inspector
+    list-mail-messages
 
-Windows client:
-`Node v24.19.0`.
+**Intelligence layer**
 
-PowerShell блокировал `npx.ps1`; рабочий обход — `npx.cmd`.
+For each returned message:
 
-Inspector запущен. Demo `example-server-default` не относится к проекту.
+1. identify the sender;
+2. identify the subject/topic;
+3. estimate urgency;
+4. determine likely business/project context;
+5. assign a logical category when evidence is sufficient;
+6. produce a concise recommended next action.
 
-Использовать:
-```text
-Transport: Streamable HTTP
-URL: https://mcp-ms365.kvantexpert.ru/mcp
-```
+**Output**
 
-## 10. Текущий OAuth blocker
+A structured human-readable summary such as:
 
-Фактический URL Inspector показал:
-```text
-client_id=084a3e9f-a9f4-43f7-89f9-d229cf97853e
-scope=Mail.Read MailboxSettings.Read User.Read offline_access
-redirect_uri=http://127.0.0.1:6274/oauth/callback
-response_type=code
-code_challenge_method=S256
-```
+    1. [Urgent] Client / Project X
+       Sender: ...
+       Subject: ...
+       Why it matters: ...
+       Recommended action: ...
 
-Microsoft возвращает:
-```text
-invalid_request: The provided value for the input parameter 'redirect_uri' is not valid.
-The expected value is a URI which matches a redirect URI registered for this client application.
-```
+    2. [Normal] Finance
+       Sender: ...
+       Subject: ...
+       Recommended action: ...
 
-Причина: callback Inspector `http://127.0.0.1:6274/oauth/callback` не совпадает с зарегистрированным Redirect URI Microsoft App Registration.
+No mailbox mutation is part of this scenario.
 
-Это не проблема Nginx, HTTPS, MCP transport или Graph Mail API. OAuth уже дошёл до Microsoft.
+## 7. Intelligence architecture
 
-### Следующее действие
-Открыть Microsoft Entra / App Registration для client ID:
-`084a3e9f-a9f4-43f7-89f9-d229cf97853e`
+The current architecture should remain separated into two layers:
 
-Проверить Authentication / Redirect URIs и зарегистрировать фактически используемый callback:
-`http://127.0.0.1:6274/oauth/callback`
+    Microsoft 365 data layer
+            |
+            v
+       mcp-ms365
+            |
+            v
+      Read mail data
+            |
+            v
+    Mail Intelligence layer
+            |
+      +-----+-----+
+      |     |     |
+      v     v     v
+   classify topic urgency
+      |     |     |
+      +-----+-----+
+            |
+            v
+   business/project context
+            |
+            v
+    recommendation
+            |
+            v
+       user / agent
 
-После этого повторить Connect в Inspector, пройти login/consent, получить token, установить MCP session и выполнить первый mail read.
+The intelligence layer must not acquire additional Microsoft permissions merely to perform analysis of already-read data.
 
-## 11. Первый E2E
+## 8. Identity and permission model
 
-Первый smoke test:
-`Покажи последние письма`
+The project keeps these concepts separate:
 
-Затем:
-- `Найди письмо от клиента`;
-- сводка входящих;
-- письма, требующие ответа;
-- история переписки;
-- классификация;
-- proposal организации.
+1. Application Client ID;
+2. Permission Catalog;
+3. Preset Registry;
+4. requested OAuth scopes;
+5. granted token scopes;
+6. OAuth authorization server;
+7. MCP resource server;
+8. Microsoft Graph.
 
-## 12. Definition of Done Phase 1
+A catalog entry is not evidence that a permission has been granted to the current token.
 
-- [ ] OAuth Inspector работает
-- [ ] MCP session устанавливается
-- [ ] read-only scopes подтверждены
-- [ ] mail tools доступны
-- [ ] последние письма читаются
-- [ ] нормализация работает
-- [ ] summary работает
-- [ ] important analysis работает
-- [ ] needs-reply analysis работает
-- [ ] thread/history работает
-- [ ] classification работает
-- [ ] sender analysis работает
-- [ ] organization proposal работает
-- [ ] тесты и документация обновлены
+The current product identity is:
 
-После этого — отдельное решение о `mcp-ms365-mail-write-v1`.
+    QUANT EXPERT Mail Assistant
+    Client ID: 657cea31-052c-4e27-b97e-43a146ea72f0
+    Account: quantexpert@outlook.com
 
-## 13. Правило восстановления
+The historical Softeria identity and historical Client ID are not part of the current product.
 
-Этот документ — архитектурный источник истины.
-Операционный источник истины — `docs/ROADMAP_MAIL_ASSISTANT.md`.
+Forbidden historical Client ID:
 
-Команда восстановления:
-> Открой docs/ROADMAP_MAIL_ASSISTANT.md и docs/MAIL_ASSISTANT_DESIGN.md. Продолжи работу с текущего checkpoint, не пересматривая уже закрытые этапы.
+    084a3e9f-a9f4-43f7-89f9-d229cf97853e
+
+## 9. Future mailbox organization
+
+After Mail Intelligence is stable, the logical mailbox structure can be designed:
+
+- Clients;
+- Projects;
+- Finance;
+- Documents;
+- Security;
+- Automation;
+- Personal;
+- Archive.
+
+Design comes before execution.
+
+No mailbox folders are created during the current Mail Intelligence stage.
+
+## 10. Controlled write boundary
+
+Mailbox-changing operations are a separate future stage.
+
+The future first controlled scenario may be:
+
+1. create MCP-Test;
+2. select one explicitly identified message;
+3. move that one message;
+4. verify;
+5. audit.
+
+This is **not enabled** by the current design.
+
+Before any write operation:
+
+- permissions must be reviewed;
+- Microsoft consent must be explicit;
+- the Graph adapter must be reviewed;
+- execution must be explicitly enabled;
+- confirmation must be required;
+- the action must be audited;
+- a new checkpoint must be created.
+
+## 11. Security rules
+
+- Use only QUANT EXPERT Mail Assistant.
+- Use Client ID `657cea31-052c-4e27-b97e-43a146ea72f0`.
+- Use `quantexpert@outlook.com` for the current mailbox.
+- Do not restore the historical Softeria identity.
+- Do not restore historical Client ID `084a3e9f-a9f4-43f7-89f9-d229cf97853e`.
+- Do not use a default Client ID fallback.
+- Do not enable `Mail.ReadWrite` for the current stage.
+- Do not enable `Mail.Send`.
+- Do not perform real mailbox writes.
+- Do not add bulk automation.
+- Do not mix Mail Intelligence with write execution.
+
+## 12. Current next action
+
+**Build the first Mail Intelligence read-only scenario on top of the already verified `list-mail-messages` data.**
+
+The next implementation should focus on the analysis contract and output structure, not on Microsoft permission expansion and not on mailbox mutation.
