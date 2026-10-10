@@ -1,201 +1,266 @@
-# Mail Assistant Roadmap
+# Microsoft 365 AI Assistant Roadmap
 
-**Repository:** `kvantexpert/mcp-ms365`
-**Product:** Mail Assistant
-**Phase:** Phase 1 — Read-Only
-**Current checkpoint:** `mcp-ms365-codex-mail-readonly-v1`
-**Status:** IN PROGRESS
+## Current Checkpoint
 
-# 0. ТОЧКА ВОССТАНОВЛЕНИЯ
+**MAIL-READ-E2E-PASSED**
 
-Если контекст потерян, сначала открыть:
-```text
-docs/ROADMAP_MAIL_ASSISTANT.md
-docs/MAIL_ASSISTANT_DESIGN.md
-```
+Previous checkpoint name: `mcp-ms365-codex-mail-readonly-v1`. The name is historical. Codex is not part of the current connection architecture.
 
-Команда:
-> Открой docs/ROADMAP_MAIL_ASSISTANT.md и docs/MAIL_ASSISTANT_DESIGN.md. Продолжи работу с текущего checkpoint. Не пересматривай закрытые этапы.
+## Current Position
 
-# 1. ЗАФИКСИРОВАННЫЙ ПЛАН
+**Stage: Read-only Mail MCP verified and first E2E mail read passed. Next: Mail Intelligence.**
 
-## Шаг 1 — Анализ почты
-- [ ] Сводки входящих
-- [ ] Важные письма
-- [ ] Письма, требующие ответа
-- [ ] История переписки
+The verified deployment is:
 
-## Шаг 2 — Классификация
-- [ ] Клиенты
-- [ ] Проекты
-- [ ] Финансы
-- [ ] Документы
-- [ ] Безопасность
-- [ ] Автоматизация
-- [ ] Личные
-- [ ] Анализ отправителей
-- [ ] Анализ содержания
+- Application: QUANT EXPERT Mail Assistant
+- Client ID: 657cea31-052c-4e27-b97e-43a146ea72f0
+- Microsoft account: quantexpert@outlook.com
+- Tenant: consumers
+- MCP endpoint: https://mcp-ms365.kvantexpert.ru/mcp
+- Transport: Streamable HTTP
+- Preset: mail
+- Access: READ ONLY
 
-## Шаг 3 — Структура хранения
-```text
-Inbox
-├── Клиенты
-├── Проекты
-├── Финансы
-├── Документы
-├── Автоматизация
-└── Архив
-```
+Expected effective Graph scopes:
 
-На Phase 1 только proposal.
+- Mail.Read
+- MailboxSettings.Read
+- User.Read
 
-## Шаг 4 — Автоматическая сортировка
-Пока только proposal. Примеры:
-- `Invoice → Финансы/Счета`
-- `Клиент X → Клиенты/X`
-- `Project Y → Проекты/Y`
+## What Was Completed
 
-## Шаг 5 — Write
-Отдельный checkpoint: `mcp-ms365-mail-write-v1`.
-Перед ним: permissions review, отдельный этап/ветка, тесты, документация и E2E.
+### 1. MCP and Graph foundation
 
-# 2. ЧТО УЖЕ СДЕЛАНО
+- MCP server deployed and operational.
+- HTTPS endpoint configured through Nginx.
+- Streamable HTTP endpoint verified.
+- Microsoft Graph mail read access verified.
+- Read-only mail profile established.
 
-## Server
-- [x] mcp-ms365 развернут;
-- [x] systemd service;
-- [x] service enabled/active;
-- [x] Node.js v24.21.0;
-- [x] `--preset mail`;
-- [x] `--read-only`;
-- [x] `127.0.0.1:3000`;
-- [x] public URL.
+### 2. Own Microsoft application identity
 
-## HTTPS
-- [x] DNS `mcp-ms365.kvantexpert.ru`;
-- [x] Nginx;
-- [x] reverse proxy;
-- [x] HTTPS/Let's Encrypt.
+Application:
 
-## MCP
-- [x] Streamable HTTP;
-- [x] `/mcp` endpoint;
-- [x] OAuth protection;
-- [x] protected-resource discovery;
-- [x] authorization-server discovery.
-
-## Inspector
-- [x] Windows Node v24.19.0;
-- [x] найден обход PowerShell policy через `npx.cmd`;
-- [x] Inspector запущен;
-- [x] правильный URL определён.
-
-# 3. НЕ ПУТАТЬ С DEMO
-
-В Inspector есть `filesystem-server-default`, `everything-server-default`, `example-server-default`.
-`example-server-default` — demo.
-
-Наш URL:
-`https://mcp-ms365.kvantexpert.ru/mcp`
-
-Если появляется `example-server.modelcontextprotocol.io`, это неправильный сервер.
-
-# 4. CURRENT BLOCKER — MICROSOFT OAUTH
-
-Inspector фактически отправляет:
-```text
-client_id=084a3e9f-a9f4-43f7-89f9-d229cf97853e
-redirect_uri=http://127.0.0.1:6274/oauth/callback
-scope=Mail.Read MailboxSettings.Read User.Read offline_access
-response_type=code
-code_challenge_method=S256
-```
-
-Microsoft отвечает:
-```text
-invalid_request: The provided value for the input parameter 'redirect_uri' is not valid.
-The expected value is a URI which matches a redirect URI registered for this client application.
-```
-
-## Диагноз
-OAuth flow доходит до Microsoft. Текущий blocker — Redirect URI Microsoft App Registration.
+QUANT EXPERT Mail Assistant
 
 Client ID:
-`084a3e9f-a9f4-43f7-89f9-d229cf97853e`
 
-Фактический Inspector callback:
-`http://127.0.0.1:6274/oauth/callback`
+657cea31-052c-4e27-b97e-43a146ea72f0
 
-## Следующий шаг
-В Microsoft Entra / App Registration открыть Authentication и проверить/добавить:
-`http://127.0.0.1:6274/oauth/callback`
+Account:
 
-Затем:
-1. Connect в Inspector;
-2. Microsoft login;
-3. consent при необходимости;
-4. callback;
-5. token;
-6. MCP session;
-7. mail read tool.
+quantexpert@outlook.com
 
-# 5. ЧТО НЕ СЧИТАЕТСЯ ЗАВЕРШЁННЫМ
+The server-side device-code login succeeded and Microsoft consent was shown for mail read, mailbox settings read and profile read.
 
-OAuth нельзя считать завершённым, пока MCP session реально не установлена.
-Mail Assistant нельзя считать работающим, пока не выполнен первый реальный mail read E2E.
+### 3. Client ID hardening
 
-Старый ручной OAuth client с callback `http://localhost:8000/callback` — отдельный тест, не callback Inspector.
+The previous implementation could fall back to a built-in public Client ID when MS365_MCP_CLIENT_ID was absent.
 
-# 6. СЛЕДУЮЩИЕ CHECKPOINTS
+This is no longer allowed.
 
-## `mcp-ms365-codex-mail-inspector-oauth-v1`
-Условия: Inspector OAuth завершён, token получен, MCP session установлена, mail tools видны.
+The current implementation requires:
 
-## `mcp-ms365-mail-analysis-v1`
-Условия: последние письма, normalization, summary, important, needs-reply, history.
+MS365_MCP_CLIENT_ID
 
-## `mcp-ms365-mail-classification-v1`
-Условия: категории, sender analysis, reason/confidence.
+If it is absent, startup fails instead of silently selecting a default application identity.
 
-## `mcp-ms365-mail-organization-proposal-v1`
-Условия: proposal структуры и правил без изменения mailbox.
+### 4. Legacy identity cleanup
 
-## `mcp-ms365-mail-write-v1`
-Только после permissions + tests + documentation + отдельного решения.
+The old Softeria identity and historical Client ID:
 
-# 7. ЖЁСТКИЕ ОГРАНИЧЕНИЯ ДО WRITE
+084a3e9f-a9f4-43f7-89f9-d229cf97853e
 
-Не включать:
-- Mail.ReadWrite;
-- Mail.Send;
-- move;
-- delete;
-- create folder;
-- rules;
-- categories;
-- reply/forward;
-- любые mailbox write actions.
+are forbidden for the QUANT EXPERT deployment.
 
-Не перескакивать к Orchestrator до самостоятельного read-only E2E.
+Legacy Softeria references were removed from the active repository.
 
-# 8. КОМАНДА ВОССТАНОВЛЕНИЯ
+Cleanup checkpoint:
 
-Скопировать в новый чат:
-> Открой docs/ROADMAP_MAIL_ASSISTANT.md и docs/MAIL_ASSISTANT_DESIGN.md. Продолжи работу с текущего checkpoint. Сейчас checkpoint `mcp-ms365-codex-mail-readonly-v1`; текущий blocker — Microsoft OAuth redirect URI для MCP Inspector `http://127.0.0.1:6274/oauth/callback`. Не пересматривай закрытые этапы и не переходи к write-функциям. Следующий шаг — исправить redirect URI в Microsoft App Registration, затем завершить OAuth и выполнить первый mail read E2E.
+adb51ce — chore: remove legacy Softeria references
 
-# 9. КРАТКАЯ ТОЧКА
+### 5. Permission model clarification
 
-```text
-CHECKPOINT: mcp-ms365-codex-mail-readonly-v1
-PHASE: Phase 1 — Mail Assistant Read-Only
-SERVER: https://mcp-ms365.kvantexpert.ru/mcp
-TRANSPORT: Streamable HTTP
-MODE: --preset mail --read-only
-SCOPES: Mail.Read, MailboxSettings.Read, User.Read
-INSPECTOR: launched
-BLOCKER: Microsoft OAuth redirect URI
-CLIENT ID: 084a3e9f-a9f4-43f7-89f9-d229cf97853e
-CALLBACK: http://127.0.0.1:6274/oauth/callback
-NEXT: register/check callback in Microsoft App Registration → repeat OAuth → establish MCP session → first mail read
-DO NOT: write permissions, write tools, Orchestrator integration
-```
+The project now explicitly separates:
+
+Application Client ID
+Permission Catalog
+Preset
+Requested OAuth scopes
+Granted token scopes
+
+A permission appearing in a catalog is not proof that Microsoft granted it to the current token.
+
+### 6. OAuth discovery
+
+The public MCP server exposes protected-resource and authorization-server metadata.
+
+Current advertised scopes:
+
+- Mail.Read
+- MailboxSettings.Read
+- User.Read
+
+The MCP resource is:
+
+https://mcp-ms365.kvantexpert.ru/mcp
+
+## Stage 3 — First E2E Mail Read
+
+**Status: PASSED**
+
+The complete path was executed successfully:
+
+MCP E2E test
+→ HTTPS /mcp
+→ Microsoft Device Code OAuth
+→ QUANT EXPERT application
+→ quantexpert@outlook.com
+→ OAuth access token
+→ MCP initialize (HTTP 200)
+→ tools/list
+→ list-mail-messages
+→ Microsoft Graph
+→ real mailbox data
+
+The test returned real messages from the mailbox and a Microsoft Graph `@odata.nextLink` for pagination.
+
+Acceptance criteria:
+
+1. OAuth succeeds for the QUANT EXPERT application. **PASS**
+2. Microsoft account is quantexpert@outlook.com. **PASS**
+3. MCP initialize succeeds. **PASS**
+4. MCP tools are available. **PASS**
+5. `list-mail-messages` succeeds. **PASS**
+6. Mail data is returned through Microsoft Graph. **PASS**
+7. No write operation occurs. **PASS**
+8. Result is recorded as an E2E checkpoint. **PASS**
+
+The temporary PowerShell/Node E2E script is a validation aid; it does not change the read-only permission boundary.
+
+## What Was NOT Done
+
+The following remain outside the current checkpoint:
+
+- Mail.ReadWrite activation
+- Mail.Send
+- real mailbox writes
+- creating mailbox folders
+- moving messages
+- deleting messages
+- mailbox rules
+- bulk organization
+- automatic automation
+- Calendar write
+- Files write
+- Teams write
+
+No write operation is enabled by this roadmap update.
+
+## Stage 4 — Mail Intelligence
+
+**Status: NEXT**
+
+Remain read-only.
+
+Planned work:
+
+- email classification;
+- topic classification;
+- sender analysis;
+- urgency detection;
+- project/business context;
+- action recommendations.
+
+The next implementation should consume already-verified mail read data and add analysis/orchestration logic without expanding Microsoft permissions.
+
+## Stage 5 — Folder Structure Design
+
+Design the logical mailbox structure:
+
+- Clients
+- Projects
+- Finance
+- Documents
+- Security
+- Automation
+- Personal
+- Archive
+
+No mailbox folders are created during design.
+
+## Stage 6 — Controlled Write Preparation
+
+Blocked until a separate permission review and checkpoint.
+
+The future first scenario is intentionally tiny:
+
+1. create MCP-Test;
+2. select one explicitly identified message;
+3. move that one message;
+4. verify;
+5. audit.
+
+This is planning only until separately approved.
+
+## Stage 7 — Controlled Write
+
+Requires:
+
+- separate permission review;
+- explicit Microsoft consent;
+- real Graph adapter review;
+- execution flag review;
+- confirmation;
+- audit;
+- new checkpoint.
+
+No automatic transition from read-only is allowed.
+
+## Stage 8 — Automation
+
+Only after controlled write validation:
+
+- rule proposals;
+- previews;
+- confirmation;
+- bounded execution;
+- audit.
+
+## Stage 9 — Other Assistants
+
+After Mail Assistant stabilization:
+
+- Calendar Assistant;
+- Files Assistant;
+- Teams Assistant;
+- Tender/Procurement Assistant;
+- Accountant Assistant.
+
+Every assistant gets its own application identity, permission review, preset and checkpoint.
+
+## Project Rules
+
+Always:
+
+1. plan;
+2. implement;
+3. test;
+4. document;
+5. checkpoint;
+6. continue.
+
+Never:
+
+- restore the old Softeria identity;
+- restore default Client ID fallback;
+- infer granted scopes from the permission catalog;
+- enable write operations without a separate checkpoint;
+- revisit closed stages without a concrete regression;
+- enable unrelated functionality.
+
+## Current Next Action
+
+**Do not change Microsoft permissions or enable write operations.**
+
+Proceed to Stage 4 — Mail Intelligence, keeping the existing read-only boundary.

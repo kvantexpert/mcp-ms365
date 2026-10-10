@@ -44,6 +44,7 @@ mcp-ms365 is an adapter layer:
 Date: 2026-09-29
 
 Status:
+
 - repository access verified;
 - architecture reviewed;
 - authentication model documented;

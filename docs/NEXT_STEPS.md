@@ -13,6 +13,7 @@
 ### 1. Full source audit
 
 Review:
+
 - authentication implementation;
 - token storage;
 - MCP tool registration;
@@ -22,6 +23,7 @@ Review:
 ### 2. Security baseline
 
 Document:
+
 - permissions/scopes;
 - sensitive operations;
 - logging requirements;
@@ -30,6 +32,7 @@ Document:
 ### 3. Operational manual
 
 Create:
+
 - installation guide;
 - configuration guide;
 - recovery procedures;
