@@ -57,11 +57,33 @@ describe('Tool Filtering', () => {
   it('should register all tools when no filter is provided', () => {
     registerGraphTools(server, graphClient, false);
 
-    // 5 mocked graph endpoints via registerTool; utilities via tool
-    // (classify-mail-message, parse-teams-url, download-bytes, download-bytes-to-file,
-    // get-download-url)
+    // 5 mocked Graph endpoints + 8 utility tools:
+    // classify-mail-message, preview-mail-organization, preview-mail-action-confirmation,
+    // preview-mail-execution, parse-teams-url, download-bytes, download-bytes-to-file,
+    // get-download-url.
     expect(registerToolSpy).toHaveBeenCalledTimes(5);
-    expect(toolSpy).toHaveBeenCalledTimes(5);
+    expect(toolSpy).toHaveBeenCalledTimes(8);
+    expect(toolSpy).toHaveBeenCalledWith(
+      'preview-mail-organization',
+      expect.any(String),
+      expect.any(Object),
+      expect.any(Object),
+      expect.any(Function)
+    );
+    expect(toolSpy).toHaveBeenCalledWith(
+      'preview-mail-action-confirmation',
+      expect.any(String),
+      expect.any(Object),
+      expect.any(Object),
+      expect.any(Function)
+    );
+    expect(toolSpy).toHaveBeenCalledWith(
+      'preview-mail-execution',
+      expect.any(String),
+      expect.any(Object),
+      expect.any(Object),
+      expect.any(Function)
+    );
     expect(registerToolSpy).toHaveBeenCalledWith(
       'list-mail-messages',
       expect.any(Object),
@@ -124,9 +146,9 @@ describe('Tool Filtering', () => {
   it('should handle invalid regex patterns gracefully', () => {
     registerGraphTools(server, graphClient, false, '[invalid regex');
 
-    // 5 mocked endpoints + 5 utilities (no filter applied on invalid regex)
+    // Invalid filters fall back to registering all 5 Graph endpoints and 8 utilities.
     expect(registerToolSpy).toHaveBeenCalledTimes(5);
-    expect(toolSpy).toHaveBeenCalledTimes(5);
+    expect(toolSpy).toHaveBeenCalledTimes(8);
   });
 
   it('should combine read-only and filtering correctly', () => {
