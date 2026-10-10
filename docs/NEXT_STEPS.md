@@ -13,6 +13,7 @@
 ### 1. Full source audit
 
 Review:
+
 - authentication implementation;
 - token storage;
 - MCP tool registration;
@@ -22,6 +23,7 @@ Review:
 ### 2. Security baseline
 
 Document:
+
 - permissions/scopes;
 - sensitive operations;
 - logging requirements;
@@ -30,6 +32,7 @@ Document:
 ### 3. Operational manual
 
 Create:
+
 - installation guide;
 - configuration guide;
 - recovery procedures;
@@ -46,3 +49,5 @@ When continuing work, start from:
 1. Read ARCHITECTURE_STATE.md
 2. Read TROUBLESHOOTING.md
 3. Continue source audit
+
+[executed on device: mcp-ms365 (65080dd4-e76f-4d8e-8c2a-b0745624fbad)]
